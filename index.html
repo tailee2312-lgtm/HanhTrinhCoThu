@@ -16786,5 +16786,97 @@ function version(){CFG.version='6.45.0';if(typeof HTCT!=='undefined')HTCT.versio
 const restore=restoreSession;restoreSession=function(...a){const r=restore.apply(this,a);pageIndex=0;requestAnimationFrame(()=>{clearGatePaths();dock();version()});return r};
 const plant=plantScene;plantScene=function(...a){const r=plant.apply(this,a);clearGatePaths();return r};clearGatePaths();dock();version();requestAnimationFrame(dock);
 })();
-</script></body>
+</script>\n<script id="v6451-reward-lock-fix">(()=>{'use strict';
+const V6451='6.45.1';
+/*
+  Fix: v6.24 anti-skip reward delay observed #reward620.class and called
+  armReward624() on every class mutation. armReward624 itself toggled the
+  v624Locked class, so the observer continuously re-armed the 1050 ms delay.
+  Because #reward620 is an .ov, blocked() then kept gameplay input disabled.
+*/
+let rewardCycleArmed6451=false;
+const reward6451=document.getElementById('reward620');
+const rewardBtn6451=document.getElementById('rewardClose620');
+if(reward6451){
+  new MutationObserver(()=>{
+    if(!reward6451.classList.contains('on')){
+      rewardCycleArmed6451=false;
+      reward6451.classList.remove('v624Locked');
+      if(rewardBtn6451)rewardBtn6451.disabled=false;
+    }
+  }).observe(reward6451,{attributes:true,attributeFilter:['class']});
+}
+
+/* Reuse the existing function name so the old observer calls this guarded implementation. */
+if(typeof armReward624==='function'){
+  armReward624=function(){
+    const root=document.getElementById('reward620'),btn=document.getElementById('rewardClose620');
+    if(!root?.classList.contains('on')||!btn)return;
+    if(rewardCycleArmed6451)return; // ignore class mutations created by this same lock cycle
+    rewardCycleArmed6451=true;
+    const ms=(typeof READ_MS624==='number'&&Number.isFinite(READ_MS624))?READ_MS624:1050;
+    rewardAllowed624=performance.now()+ms;
+    root.classList.add('v624Locked');
+    btn.disabled=true;
+    setTimeout(()=>{
+      if(!root.classList.contains('on'))return;
+      root.classList.remove('v624Locked');
+      btn.disabled=false;
+      try{btn.focus({preventScroll:true})}catch(_){try{btn.focus()}catch(__){}}
+    },ms+25);
+  };
+}
+
+/* Fail-safe: a reward overlay must never hold the player forever, even if a later patch mutates classes. */
+let rewardWatch6451=0;
+function watchReward6451(){
+  if(!reward6451||!rewardBtn6451)return;
+  if(reward6451.classList.contains('on')){
+    if(!rewardWatch6451)rewardWatch6451=performance.now();
+    const ms=(typeof READ_MS624==='number'&&Number.isFinite(READ_MS624))?READ_MS624:1050;
+    if(performance.now()-rewardWatch6451>ms+450){
+      reward6451.classList.remove('v624Locked');
+      rewardBtn6451.disabled=false;
+    }
+  }else rewardWatch6451=0;
+}
+setInterval(watchReward6451,160);
+
+/* Bridge completion recovery: once the boar has left, stale dialogue/input state is explicitly released. */
+if(typeof v627FinishBridgeQuest==='function'){
+  const finishBridge6451=v627FinishBridgeQuest;
+  v627FinishBridgeQuest=function(){
+    let r;
+    try{return (r=finishBridge6451.apply(this,arguments));}
+    finally{
+      setTimeout(()=>{
+        try{
+          if(S?.gateOpen){
+            if(typeof dlg!=='undefined'&&!dlg.open)document.getElementById('dialog')?.classList.remove('on');
+            resetInput?.();
+            updateTutorialLocks?.();
+            hud?.();
+          }
+        }catch(e){console.warn('[v6451 bridge recovery]',e)}
+      },180);
+    }
+  };
+}
+
+function version6451(){
+  if(typeof CFG!=='undefined')CFG.version=V6451;
+  if(typeof HTCT!=='undefined')HTCT.version=V6451;
+  if(typeof S!=='undefined'&&S.v320)S.v320.patchVersion=V6451;
+  document.title='Hành Trình Cổ Thư — v'+V6451;
+  document.querySelectorAll('.ver').forEach(e=>e.textContent=(e.textContent||'').replace(/6\\.45\\.0/g,V6451));
+}
+const restore6451=restoreSession;
+restoreSession=function(...a){
+  rewardCycleArmed6451=false;rewardWatch6451=0;
+  if(reward6451){reward6451.classList.remove('v624Locked');if(rewardBtn6451)rewardBtn6451.disabled=false;}
+  const r=restore6451.apply(this,a);version6451();return r;
+};
+version6451();
+console.info('[v6.45.1] Fixed reward anti-skip re-arm loop and bridge quest input recovery.');
+})();</script>\n</body>
 </html>
