@@ -16936,5 +16936,89 @@ v6451UnlockReward();
 v6451Version();
 })();</script>
 
+\n<style id="v6452-landscape-style">
+/* v6.45.2 — ONLY touch/coarse landscape 16:9 HUD. Desktop and portrait remain unchanged. */
+@media (orientation:landscape) and (pointer:coarse) and (max-height:620px){
+ body.v6452Landscape #orbitDock622{position:fixed!important;left:max(10px,env(safe-area-inset-left))!important;top:max(8px,env(safe-area-inset-top))!important;transform:scale(.76)!important;transform-origin:top left!important;z-index:80!important}
+ body.v6452Landscape #orbitDock622 *{box-sizing:border-box}
+ body.v6452Landscape #stats626{white-space:nowrap!important;font-size:10px!important;gap:6px!important}
+ body.v6452Landscape #stats626 b{font-size:9px!important;white-space:nowrap!important}
+ body.v6452Landscape #avatarRadial624{position:fixed!important;left:auto!important;right:max(58px,calc(env(safe-area-inset-right) + 58px))!important;top:max(20px,calc(env(safe-area-inset-top) + 20px))!important;width:0!important;height:0!important;z-index:92!important;pointer-events:none!important}
+ body.v6452Landscape #avatarRadial624 .radialBtn624{position:absolute!important;left:0!important;top:0!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;padding:5px!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translate(-50%,-50%) scale(.82)!important;transition:opacity .14s ease,transform .18s ease,visibility .14s!important}
+ body.v6452Landscape.v6452DockOpen #avatarRadial624 .radialBtn624{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+ body.v6452Landscape.v6452DockOpen #avatarRadial624 .radialBtn624:nth-child(1){transform:translate(-250px,0)!important}
+ body.v6452Landscape.v6452DockOpen #avatarRadial624 .radialBtn624:nth-child(2){transform:translate(-202px,0)!important}
+ body.v6452Landscape.v6452DockOpen #avatarRadial624 .radialBtn624:nth-child(3){transform:translate(-154px,0)!important}
+ body.v6452Landscape.v6452DockOpen #avatarRadial624 .radialBtn624:nth-child(4){transform:translate(-106px,0)!important}
+ body.v6452Landscape.v6452DockOpen #avatarRadial624 .radialBtn624:nth-child(5){transform:translate(-58px,0)!important}
+ body.v6452Landscape #avatarRadial624 .dockLabel626{display:none!important}
+ body.v6452Landscape #v6452FeatureToggle{display:grid!important;position:fixed!important;right:max(12px,env(safe-area-inset-right))!important;top:max(9px,env(safe-area-inset-top))!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;place-items:center!important;z-index:95!important;border:1px solid rgba(211,211,157,.6)!important;border-radius:12px!important;background:linear-gradient(135deg,rgba(36,81,66,.92),rgba(10,43,48,.92))!important;color:#fff0c3!important;font-size:21px!important;line-height:1!important;box-shadow:0 4px 14px rgba(0,0,0,.28)!important;backdrop-filter:blur(8px)!important}
+ body.v6452Landscape.v6452DockOpen #v6452FeatureToggle{transform:rotate(90deg)!important}
+ body.v6452Landscape #environmentHud625{position:fixed!important;right:max(8px,env(safe-area-inset-right))!important;top:max(58px,calc(env(safe-area-inset-top) + 58px))!important;left:auto!important;display:flex!important;flex-direction:column!important;align-items:flex-end!important;gap:3px!important;z-index:70!important}
+ body.v6452Landscape #environmentHud625 #minimap{width:104px!important;height:104px!important;min-width:104px!important;min-height:104px!important;margin:0!important;position:relative!important;inset:auto!important;transform:none!important}
+ body.v6452Landscape #environmentHud625 #envIndicator{position:absolute!important;right:4px!important;top:108px!important;font-size:15px!important}
+ body.v6452Landscape #environmentHud625 #envIcon{font-size:16px!important}
+ body.v6452Landscape[data-ui-theme="glass"] #questBox{position:fixed!important;left:max(10px,env(safe-area-inset-left))!important;top:max(150px,calc(env(safe-area-inset-top) + 150px))!important;width:270px!important;max-width:270px!important;min-height:0!important;padding:7px 30px 7px 10px!important;border-radius:7px!important;z-index:72!important}
+ body.v6452Landscape[data-ui-theme="glass"] #questBox .questBoxTitle{font-size:7px!important;line-height:9px!important;margin-bottom:1px!important;white-space:nowrap!important}
+ body.v6452Landscape[data-ui-theme="glass"] #questTitle{font-size:12px!important;line-height:15px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+ body.v6452Landscape[data-ui-theme="glass"] #questProgress{font-size:9.5px!important;line-height:12px!important;max-height:12px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;margin-top:1px!important}
+ body.v6452Landscape[data-ui-theme="glass"] #uiLightQuestToggle{width:21px!important;height:21px!important;min-width:21px!important;min-height:21px!important;right:5px!important;top:5px!important;font-size:12px!important}
+ body.v6452Landscape #resourceHud623{font-size:10px!important;white-space:nowrap!important;transform:scale(.88)!important;transform-origin:top left!important}
+}
+#v6452FeatureToggle{display:none}
+</style>
+<script id="v6452-fix">(()=>{'use strict';
+const V6452='6.45.2';
+/* Bridge completion: one synchronous, idempotent transaction. No delayed callback, no latch timer. */
+let bridgeTxn6452=false;
+function recover6452(){
+ try{if(typeof v6451UnlockReward==='function')v6451UnlockReward()}catch(_){}
+ try{if(typeof recoverTransient6351==='function')recoverTransient6351();else if(typeof resetInput==='function')resetInput()}catch(_){}
+ try{if(typeof updateTutorialLocks==='function')updateTutorialLocks()}catch(_){}
+ try{if(typeof World!=='undefined'&&World.applyRegionGates)World.applyRegionGates()}catch(_){}
+ try{hud()}catch(_){}
+}
+function finishBridge6452(){
+ if(bridgeTxn6452)return false;
+ if(S?.gateOpen&&QM.status('main_gate')==='completed'){recover6452();return true}
+ bridgeTxn6452=true;
+ try{
+  const need=5;S.items=S.items||{};S.v627=S.v627||{};S.v326=S.v326||{};
+  if(!S.v627.bridgeRewardCommitted)S.items.meat=Math.max(0,(S.items.meat||0)-need);
+  S.gateOpen=true;S.quest=Math.max(S.quest||0,4);S.v326.boarCleared=true;
+  try{gateAnim=1;applyGate()}catch(_){}
+  const q=S.quests?.main_gate;if(q){q.objectives=q.objectives||{};q.objectives.meat=need;q.objectives.feed=1;if('open' in q.objectives)q.objectives.open=1;if(q.status!=='completed')q.status='active'}
+  let done=QM.status('main_gate')==='completed';
+  if(!done){try{QM.complete('main_gate')}catch(e){console.error('[v6.45.2 bridge]',e)}done=QM.status('main_gate')==='completed'}
+  if(done)S.v627.bridgeRewardCommitted=true;
+  try{World?.applyRegionGates?.()}catch(_){}
+  try{setHint('Đường sang Rừng Tinh Mộc đã mở.');Snd?.sfx?.('quest');save()}catch(e){console.warn('[v6.45.2 bridge save]',e)}
+  return done;
+ }finally{bridgeTxn6452=false;recover6452();requestAnimationFrame(recover6452)}
+}
+/* Keep legacy callers safe, but the boar dialogue itself uses the closure above and cannot lose the symbol. */
+window.v627FinishBridgeQuest=finishBridge6452;
+v326TalkBoar=function(){
+ const state=QM.status('main_gate'),have=Math.max(0,S?.items?.meat||0),need=5;
+ if(S?.gateOpen)return say('Heo rừng khổng lồ',['Cây cầu giờ đã trống, có thể sang Rừng Tinh Mộc rồi.']);
+ if(state==='locked'&&(S.quest||0)<3)return say('Heo rừng khổng lồ',['Con heo rừng đang ngủ chắn đường. Hãy hoàn thành phần mở đầu trước.']);
+ if(S.quests?.main_gate&&state==='available'){S.quests.main_gate.status='active';try{questHudEffect?.('receive')}catch(_){}try{hud();save()}catch(_){}}
+ if(have<need)return say('Heo rừng khổng lồ',['Nó vẫn ngủ say và chắn ngang lối qua cầu.','Hãy săn Gà Thông lấy đủ 5 thịt tươi rồi quay lại. ('+have+'/'+need+')']);
+ return say('Heo rừng khổng lồ',['Bạn đặt 5 phần thịt tươi trước mõm nó.','Con heo rừng tỉnh giấc, ăn sạch chỗ thịt rồi lạch bạch rời khỏi cầu. Đường sang Rừng Tinh Mộc đã thông.'],finishBridge6452);
+};
+useGate=function(){return v326TalkBoar()};
+/* Landscape-only feature launcher. Existing feature buttons are reused, not duplicated. */
+let toggle=document.getElementById('v6452FeatureToggle');
+if(!toggle){toggle=document.createElement('button');toggle.id='v6452FeatureToggle';toggle.type='button';toggle.textContent='☰';toggle.title='Tính năng';toggle.setAttribute('aria-label','Mở các tính năng');document.body.append(toggle)}
+const mq6452=matchMedia('(orientation: landscape) and (pointer: coarse) and (max-height: 620px)');
+function landscape6452(){const on=mq6452.matches;document.body.classList.toggle('v6452Landscape',on);if(!on)document.body.classList.remove('v6452DockOpen');}
+toggle.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(!document.body.classList.contains('v6452Landscape'))return;document.body.classList.toggle('v6452DockOpen');try{Snd?.sfx?.('click')}catch(_){}});
+document.addEventListener('pointerdown',e=>{if(!document.body.classList.contains('v6452DockOpen'))return;if(e.target.closest?.('#v6452FeatureToggle,#avatarRadial624'))return;document.body.classList.remove('v6452DockOpen')},{passive:true});
+document.getElementById('avatarRadial624')?.addEventListener('click',()=>document.body.classList.remove('v6452DockOpen'));
+try{mq6452.addEventListener('change',landscape6452)}catch(_){mq6452.addListener?.(landscape6452)}
+addEventListener('resize',landscape6452,{passive:true});landscape6452();
+function version6452(){try{CFG.version=V6452}catch(_){}try{HTCT.version=V6452}catch(_){}try{if(S?.v320)S.v320.patchVersion=V6452}catch(_){}document.title='Hành Trình Cổ Thư — v'+V6452;document.querySelectorAll('.ver').forEach(e=>e.textContent=(e.textContent||'').replace(/6\\.45\\.[01]/g,V6452))}
+version6452();
+})();</script>
 </body>
 </html>
