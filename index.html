@@ -16786,97 +16786,155 @@ function version(){CFG.version='6.45.0';if(typeof HTCT!=='undefined')HTCT.versio
 const restore=restoreSession;restoreSession=function(...a){const r=restore.apply(this,a);pageIndex=0;requestAnimationFrame(()=>{clearGatePaths();dock();version()});return r};
 const plant=plantScene;plantScene=function(...a){const r=plant.apply(this,a);clearGatePaths();return r};clearGatePaths();dock();version();requestAnimationFrame(dock);
 })();
-</script>\n<script id="v6451-reward-lock-fix">(()=>{'use strict';
+</script>
+<script id="v6451-bridge-completion-hotfix">(()=>{'use strict';
 const V6451='6.45.1';
-/*
-  Fix: v6.24 anti-skip reward delay observed #reward620.class and called
-  armReward624() on every class mutation. armReward624 itself toggled the
-  v624Locked class, so the observer continuously re-armed the 1050 ms delay.
-  Because #reward620 is an .ov, blocked() then kept gameplay input disabled.
+
+/* v6.45.1
+   - Remove the timed lock from the reward panel.
+   - Stop generic quest-completion cutscenes/panels; chapter transition + reward remain.
+   - Commit the sleeping-boar bridge quest synchronously after dialogue closes.
+   - Always recover input/UI after bridge completion, even if a presentation wrapper fails.
 */
-let rewardCycleArmed6451=false;
-const reward6451=document.getElementById('reward620');
-const rewardBtn6451=document.getElementById('rewardClose620');
-if(reward6451){
-  new MutationObserver(()=>{
-    if(!reward6451.classList.contains('on')){
-      rewardCycleArmed6451=false;
-      reward6451.classList.remove('v624Locked');
-      if(rewardBtn6451)rewardBtn6451.disabled=false;
+function v6451UnlockReward(){
+  try{if(typeof rewardAllowed624!=='undefined')rewardAllowed624=0}catch(_){ }
+  const root=document.getElementById('reward620'),btn=document.getElementById('rewardClose620');
+  if(root)root.classList.remove('v624Locked');
+  if(btn){btn.disabled=false;btn.removeAttribute('disabled');btn.style.pointerEvents='auto';}
+}
+/* Disable the legacy arming function itself so its MutationObserver cannot re-lock the panel. */
+try{if(typeof armReward624==='function')armReward624=function(){rewardAllowed624=0;v6451UnlockReward();}}catch(_){ }
+
+/* Existing v6.24 observers may try to re-arm the 1.05 s lock whenever reward620 opens.
+   This observer runs after them and immediately restores the button. */
+const v6451Reward=document.getElementById('reward620');
+if(v6451Reward){
+  new MutationObserver(()=>{if(v6451Reward.classList.contains('on'))queueMicrotask(v6451UnlockReward)}).observe(v6451Reward,{attributes:true,attributeFilter:['class']});
+  v6451Reward.addEventListener('click',e=>{
+    if(e.target.closest?.('#rewardClose620'))v6451UnlockReward();
+  },true);
+}
+
+/* Keep only the dedicated chapter-transition notice and reward panel after quest completion.
+   Story text remains available in the Story archive; it simply no longer auto-opens a completion cutscene. */
+try{
+  if(typeof V670_CUTSCENES==='object'&&V670_CUTSCENES){
+    for(const id of Object.keys(V670_CUTSCENES))V670_CUTSCENES[id]=null;
+  }
+}catch(e){console.warn('[v6.45.1 completion panels]',e)}
+
+function v6451RecoverPlay(){
+  try{v6451UnlockReward()}catch(_){ }
+  try{document.getElementById('v670Cutscene')?.classList.remove('on')}catch(_){ }
+  try{
+    if(typeof recoverTransient6351==='function')recoverTransient6351();
+    else if(typeof resetInput==='function')resetInput();
+  }catch(_){ }
+  try{if(typeof updateTutorialLocks==='function')updateTutorialLocks()}catch(_){ }
+  try{if(typeof refreshFeatureLocks==='function')refreshFeatureLocks()}catch(_){ }
+  try{if(typeof World!=='undefined'&&World.applyRegionGates)World.applyRegionGates()}catch(_){ }
+  try{if(typeof hud==='function')hud()}catch(_){ }
+}
+
+/* Authoritative bridge completion. No extra 120 ms commit delay and no stale latch. */
+let v6451BridgeBusy=false;
+window.v627FinishBridgeQuest=v627FinishBridgeQuest=function(){
+  if(v6451BridgeBusy)return false;
+  if(S?.gateOpen&&QM.status('main_gate')==='completed'){
+    v6451RecoverPlay();
+    return true;
+  }
+  v6451BridgeBusy=true;
+  try{
+    const need=5;
+    S.v627=S.v627||{};
+    S.items=S.items||{};
+
+    /* Consume meat only once. A save that already committed the reward must never pay twice. */
+    if(!S.v627.bridgeRewardCommitted){
+      S.items.meat=Math.max(0,(S.items.meat||0)-need);
     }
-  }).observe(reward6451,{attributes:true,attributeFilter:['class']});
-}
 
-/* Reuse the existing function name so the old observer calls this guarded implementation. */
-if(typeof armReward624==='function'){
-  armReward624=function(){
-    const root=document.getElementById('reward620'),btn=document.getElementById('rewardClose620');
-    if(!root?.classList.contains('on')||!btn)return;
-    if(rewardCycleArmed6451)return; // ignore class mutations created by this same lock cycle
-    rewardCycleArmed6451=true;
-    const ms=(typeof READ_MS624==='number'&&Number.isFinite(READ_MS624))?READ_MS624:1050;
-    rewardAllowed624=performance.now()+ms;
-    root.classList.add('v624Locked');
-    btn.disabled=true;
-    setTimeout(()=>{
-      if(!root.classList.contains('on'))return;
-      root.classList.remove('v624Locked');
-      btn.disabled=false;
-      try{btn.focus({preventScroll:true})}catch(_){try{btn.focus()}catch(__){}}
-    },ms+25);
-  };
-}
+    S.gateOpen=true;
+    S.quest=Math.max(S.quest||0,4);
+    S.v326=S.v326||{};
+    S.v326.boarCleared=true;
+    try{gateAnim=1}catch(_){ }
+    try{applyGate()}catch(_){ }
 
-/* Fail-safe: a reward overlay must never hold the player forever, even if a later patch mutates classes. */
-let rewardWatch6451=0;
-function watchReward6451(){
-  if(!reward6451||!rewardBtn6451)return;
-  if(reward6451.classList.contains('on')){
-    if(!rewardWatch6451)rewardWatch6451=performance.now();
-    const ms=(typeof READ_MS624==='number'&&Number.isFinite(READ_MS624))?READ_MS624:1050;
-    if(performance.now()-rewardWatch6451>ms+450){
-      reward6451.classList.remove('v624Locked');
-      rewardBtn6451.disabled=false;
+    const qs=S.quests?.main_gate;
+    if(qs){
+      if(qs.status!=='completed')qs.status='active';
+      qs.objectives=qs.objectives||{};
+      qs.objectives.meat=need;
+      qs.objectives.feed=1;
+      if('open' in qs.objectives)qs.objectives.open=1;
     }
-  }else rewardWatch6451=0;
-}
-setInterval(watchReward6451,160);
 
-/* Bridge completion recovery: once the boar has left, stale dialogue/input state is explicitly released. */
-if(typeof v627FinishBridgeQuest==='function'){
-  const finishBridge6451=v627FinishBridgeQuest;
-  v627FinishBridgeQuest=function(){
-    let r;
-    try{return (r=finishBridge6451.apply(this,arguments));}
-    finally{
-      setTimeout(()=>{
-        try{
-          if(S?.gateOpen){
-            if(typeof dlg!=='undefined'&&!dlg.open)document.getElementById('dialog')?.classList.remove('on');
-            resetInput?.();
-            updateTutorialLocks?.();
-            hud?.();
-          }
-        }catch(e){console.warn('[v6451 bridge recovery]',e)}
-      },180);
+    let ok=QM.status('main_gate')==='completed';
+    if(!ok){
+      try{ok=QM.complete('main_gate')!==false||QM.status('main_gate')==='completed'}
+      catch(e){console.error('[v6.45.1 bridge complete]',e);ok=QM.status('main_gate')==='completed';}
     }
-  };
-}
+    if(ok)S.v627.bridgeRewardCommitted=true;
 
-function version6451(){
-  if(typeof CFG!=='undefined')CFG.version=V6451;
-  if(typeof HTCT!=='undefined')HTCT.version=V6451;
-  if(typeof S!=='undefined'&&S.v320)S.v320.patchVersion=V6451;
-  document.title='Hành Trình Cổ Thư — v'+V6451;
-  document.querySelectorAll('.ver').forEach(e=>e.textContent=(e.textContent||'').replace(/6\\.45\\.0/g,V6451));
-}
-const restore6451=restoreSession;
-restoreSession=function(...a){
-  rewardCycleArmed6451=false;rewardWatch6451=0;
-  if(reward6451){reward6451.classList.remove('v624Locked');if(rewardBtn6451)rewardBtn6451.disabled=false;}
-  const r=restore6451.apply(this,a);version6451();return r;
+    try{if(typeof World!=='undefined'&&World.applyRegionGates)World.applyRegionGates()}catch(_){ }
+    try{
+      if(typeof FX!=='undefined'&&FX.on){
+        const p=typeof v590BoarWorldPos==='function'?v590BoarWorldPos():{x:WORLD.gate.x+.5,y:WORLD.gate.ys[0]+1};
+        FX.shake(.12);FX.rings(p.x,p.y,'#48ded0');
+      }
+    }catch(_){ }
+    try{setHint('Đường sang Rừng Tinh Mộc đã mở.')}catch(_){ }
+    try{Snd.sfx('quest')}catch(_){ }
+    try{save()}catch(e){console.warn('[v6.45.1 bridge save]',e)}
+    return ok;
+  }finally{
+    v6451BridgeBusy=false;
+    /* Recovery is immediate; requestAnimationFrame catches DOM changes performed by reward UI wrappers. */
+    v6451RecoverPlay();
+    requestAnimationFrame(v6451RecoverPlay);
+  }
 };
-version6451();
-console.info('[v6.45.1] Fixed reward anti-skip re-arm loop and bridge quest input recovery.');
-})();</script>\n</body>
+
+/* Replace the old boar callback that waited another 120 ms before committing the quest. */
+v326TalkBoar=function(){
+  const state=QM.status('main_gate'),have=Math.max(0,S?.items?.meat||0),need=5;
+  if(S?.gateOpen)return say('Heo rừng khổng lồ',['Cây cầu giờ đã trống, có thể sang Rừng Tinh Mộc rồi.']);
+  if(state==='locked'&&(S.quest||0)<3)return say('Heo rừng khổng lồ',['Con heo rừng đang ngủ chắn đường. Hãy hoàn thành phần mở đầu trước.']);
+  if(S.quests?.main_gate&&state==='available'){
+    S.quests.main_gate.status='active';
+    if(typeof questHudEffect==='function')questHudEffect('receive');
+    try{hud();save()}catch(_){ }
+  }
+  if(have<need)return say('Heo rừng khổng lồ',['Nó vẫn ngủ say và chắn ngang lối qua cầu.','Hãy săn Gà Thông lấy đủ 5 thịt tươi rồi quay lại. ('+have+'/'+need+')']);
+  return say('Heo rừng khổng lồ',[
+    'Bạn đặt 5 phần thịt tươi trước mõm nó.',
+    'Con heo rừng tỉnh giấc, ăn sạch chỗ thịt rồi lạch bạch rời khỏi cầu. Đường sang Rừng Tinh Mộc đã thông.'
+  ],()=>v627FinishBridgeQuest());
+};
+useGate=function(){return v326TalkBoar()};
+
+/* If a save is loaded while an old timed reward lock was active, clear it immediately. */
+const v6451Restore=restoreSession;
+restoreSession=function(...a){
+  const r=v6451Restore.apply(this,a);
+  queueMicrotask(()=>{v6451UnlockReward();v6451RecoverPlay();});
+  v6451Version();
+  return r;
+};
+
+function v6451Version(){
+  try{CFG.version=V6451}catch(_){ }
+  try{if(typeof HTCT!=='undefined')HTCT.version=V6451}catch(_){ }
+  try{if(S?.v320)S.v320.patchVersion=V6451}catch(_){ }
+  document.title='Hành Trình Cổ Thư — v'+V6451;
+  document.querySelectorAll('.ver').forEach(e=>e.textContent=(e.textContent||'').replace(/6\.45\.0/g,V6451));
+}
+
+v6451UnlockReward();
+v6451Version();
+})();</script>
+
+</body>
 </html>
