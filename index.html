@@ -17726,5 +17726,186 @@ const restore6540=restoreSession;restoreSession=function(...a){const r=restore65
 version();requestAnimationFrame(version);
 })();</script>
 
+<style id="v6550-hud-layout-style">
+/* v6.55.0 — mobile 16:9 HUD refinement + HUD layout editor + balanced pause controls. */
+
+/* Pause menu: fullscreen sits beside Main Menu and every button shares the same cell geometry. */
+#menu .menuBtns{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;align-items:stretch!important;
+}
+#menu .menuBtns>.btn{
+  position:static!important;inset:auto!important;width:100%!important;min-width:0!important;min-height:46px!important;height:auto!important;
+  margin:0!important;padding:10px 12px!important;border-radius:11px!important;font-size:15px!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;
+}
+#menu [data-fullscreen]{
+  position:static!important;inset:auto!important;width:100%!important;height:auto!important;min-width:0!important;min-height:46px!important;
+  padding:10px 12px!important;border-radius:11px!important;font-size:15px!important;display:flex!important;place-items:initial!important;
+}
+#menu [data-fullscreen]::before{content:none!important}
+@media(max-width:760px){
+  #menu .menuBtns{gap:7px!important}
+  #menu .menuBtns>.btn,#menu [data-fullscreen]{min-height:38px!important;padding:7px 8px!important;font-size:11px!important;border-radius:8px!important}
+}
+
+/* ---- mobile landscape 16:9 main HUD ---- */
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #orbitDock622{
+  left:max(2px,env(safe-area-inset-left))!important;top:max(2px,env(safe-area-inset-top))!important;width:88px!important;height:88px!important;
+}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #orbitDock622 #playerAvatarBtn{
+  left:5px!important;top:5px!important;width:72px!important;height:72px!important;min-width:72px!important;
+}
+html[data-htct-layout="mobileLandscape"] #xpRing6453{inset:-5px!important}
+html[data-htct-layout="mobileLandscape"] #xpLevel6453{top:calc(100% + 3px)!important;font-size:8px!important;line-height:9px!important}
+
+/* Quest is now a notebook icon; the compact panel unfolds to its right. */
+html[data-htct-layout="mobileLandscape"] #mobileQuestToggle6550{
+  position:fixed;left:max(8px,env(safe-area-inset-left));top:88px;z-index:96;width:34px;height:34px;min-width:34px;min-height:34px;
+  border:0;background:transparent;box-shadow:none;padding:0;display:grid;place-items:center;font-size:25px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.58));
+  pointer-events:auto;cursor:pointer;
+}
+html:not([data-htct-layout="mobileLandscape"]) #mobileQuestToggle6550{display:none!important}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #questBox{
+  display:block!important;left:46px!important;top:86px!important;width:218px!important;max-width:34vw!important;max-height:104px!important;
+  padding:0 8px 7px!important;border-radius:9px!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+  transform:translateX(-8px) scale(.97)!important;transform-origin:top left!important;transition:opacity .16s ease,transform .18s ease,visibility .16s!important;
+}
+html[data-htct-layout="mobileLandscape"] body.mobileQuestOpen6550[data-ui-theme="glass"] #questBox{
+  opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:none!important;
+}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #questBox .questBoxTitle{font-size:8px!important;min-height:21px!important;line-height:10px!important;padding:3px 28px 3px 6px!important;margin:-1px -9px 4px!important}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #questTitle{font-size:10px!important;line-height:12px!important;-webkit-line-clamp:2!important}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #questProgress{font-size:8px!important;line-height:11px!important;-webkit-line-clamp:2!important}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #uiLightQuestToggle{display:none!important}
+
+/* Right menu button; children fan horizontally to the LEFT as icons only. */
+html[data-htct-layout="mobileLandscape"] #mobileHudMenu6540{
+  right:max(8px,env(safe-area-inset-right));top:max(6px,env(safe-area-inset-top));width:38px;height:38px;min-width:38px;min-height:38px;
+  border-radius:9px;font-size:18px;
+}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #ui690Tools{
+  position:fixed!important;right:54px!important;top:max(6px,env(safe-area-inset-top))!important;left:auto!important;width:auto!important;max-width:calc(100vw - 120px)!important;height:38px!important;max-height:none!important;
+  display:flex!important;flex-direction:row-reverse!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;padding:0!important;
+  background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;overflow:visible!important;
+  transform:translateX(8px)!important;transform-origin:right center!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"].mobileHudToolsOpen6540 #ui690Tools{opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:none!important}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #ui690Tools>button,
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #ui690Tools .radialBtn624{
+  position:relative!important;inset:auto!important;transform:none!important;width:31px!important;min-width:31px!important;height:31px!important;min-height:31px!important;
+  margin:0!important;padding:1px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  display:grid!important;place-items:center!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #ui690Tools>button:hover,
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #ui690Tools .radialBtn624:hover{background:transparent!important;box-shadow:none!important;filter:brightness(1.2)!important}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #ui690Tools .gameIcon{width:28px!important;height:28px!important;min-width:28px!important;filter:drop-shadow(0 2px 3px rgba(0,0,0,.62))!important}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #ui690Tools .equipHudGlyph{font-size:25px!important;line-height:28px!important;width:28px!important;filter:drop-shadow(0 2px 3px rgba(0,0,0,.62))}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #ui690Tools :is(.uiLightButtonLabel,.dockLabel626){display:none!important}
+
+/* Minimap is smaller and automatically anchored below the menu toggle. */
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #environmentHud625{
+  position:fixed!important;right:max(6px,env(safe-area-inset-right))!important;top:52px!important;left:auto!important;transform:none!important;width:76px!important;height:auto!important;display:block!important;
+}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #environmentHud625 #minimap,
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #minimap{
+  position:fixed!important;right:max(8px,env(safe-area-inset-right))!important;top:var(--v655-menu-bottom,52px)!important;left:auto!important;width:72px!important;height:72px!important;margin:0!important;transform:none!important;border-width:2px!important;
+}
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] #environmentHud625 #envIndicator{position:fixed!important;right:11px!important;top:128px!important;transform:scale(.7)!important;transform-origin:top right!important}
+
+/* General mobile HUD type reduction to keep content inside compact boxes. */
+html[data-htct-layout="mobileLandscape"] body[data-ui-theme="glass"] :is(#resourceHud623,#environmentHud625,#touch,#hint,#toast){font-size:9px!important}
+
+/* HUD layout editor visual affordances. */
+body.hudEdit6550 [data-hud-editable6550]{outline:1px dashed rgba(255,225,126,.72)!important;outline-offset:3px!important;cursor:move!important;touch-action:none!important}
+body.hudEdit6550 [data-hud-editable6550].hudSelected6550{outline:2px solid #ffe082!important;outline-offset:4px!important;filter:drop-shadow(0 0 7px rgba(255,224,130,.45))!important}
+#hudEditor6550{position:fixed;inset:0;z-index:25000;display:none;pointer-events:none}
+#hudEditor6550.on{display:block}
+#hudEditorPanel6550{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);pointer-events:auto;width:min(560px,94vw);padding:10px 12px;border:1px solid rgba(236,215,153,.62);border-radius:12px;background:rgba(8,31,34,.94);box-shadow:0 8px 28px rgba(0,0,0,.4);backdrop-filter:blur(10px);color:#fff1c9;font:12px/1.3 var(--body)}
+#hudEditorPanel6550 .hudEditTop6550{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:7px}
+#hudEditorPanel6550 .hudEditControls6550{display:grid;grid-template-columns:auto minmax(120px,1fr) auto auto auto;gap:7px;align-items:center}
+#hudEditorPanel6550 select,#hudEditorPanel6550 input{min-height:30px;font-size:12px}
+#hudEditorPanel6550 button{min-height:30px;padding:5px 8px;font-size:11px}
+#hudEditorPanel6550 .hudEditHint6550{font-size:10px;opacity:.78;margin-top:6px}
+@media(max-width:760px){#hudEditorPanel6550{bottom:5px;padding:7px 8px}#hudEditorPanel6550 .hudEditControls6550{grid-template-columns:1fr 1fr 1fr}#hudEditorPanel6550 .hudEditControls6550 label{grid-column:1/-1}#hudEditorPanel6550 .hudScaleWrap6550{grid-column:1/-1;display:flex;gap:6px;align-items:center}#hudEditorPanel6550 .hudScaleWrap6550 input{flex:1}}
+
+#settings .hudLayoutRow6550{border-top:1px solid rgba(230,211,153,.18);margin-top:8px;padding-top:14px!important}
+</style>
+<script id="v6550-hud-layout-script">(()=>{'use strict';
+const V='6.55.0', root=document.documentElement, body=document.body;
+const isMobile16=()=>root.dataset.htctLayout==='mobileLandscape';
+const STORE='htct_hud_layout_v6550';
+const EDITABLE={
+  avatar:['#orbitDock622','Avatar'], quest:['#mobileQuestToggle6550','Nút nhiệm vụ'], menu:['#mobileHudMenu6540','Nút menu'],
+  tools:['#ui690Tools','Cụm biểu tượng'], minimap:['#minimap','Mini-map'], resources:['#resourceHud623','Tài nguyên'], weather:['#envIndicator','Thời tiết'],
+  joy:['#joy','Joystick'], action:['#act','Hành động'], run:['#run','Chạy'], jump:['#jump','Nhảy']
+};
+let state={},selected='avatar',drag=null,editorOpen=false;
+try{state=JSON.parse(localStorage.getItem(STORE)||'{}')||{}}catch(_){state={}}
+
+function save(){try{localStorage.setItem(STORE,JSON.stringify(state))}catch(_){}}
+function elFor(key){const s=EDITABLE[key]?.[0];return s?document.querySelector(s):null}
+function markEditables(){for(const [key] of Object.entries(EDITABLE)){const el=elFor(key);if(el){el.dataset.hudEditable6550=key;el.classList.toggle('hudSelected6550',key===selected&&editorOpen)}}}
+function updateMinimapAnchor(){if(!isMobile16())return;const menu=document.getElementById('mobileHudMenu6540');if(!menu)return;const r=menu.getBoundingClientRect();const top=Math.max(48,Math.round(r.bottom+8));document.documentElement.style.setProperty('--v655-menu-bottom',top+'px')}
+function applyOne(key){const el=elFor(key);if(!el)return;const v=state[key]||{};el.style.translate=`${Number(v.x)||0}px ${Number(v.y)||0}px`;el.style.scale=String(Number(v.s)||1);if(key==='menu')requestAnimationFrame(updateMinimapAnchor)}
+function applyAll(){for(const key of Object.keys(EDITABLE))applyOne(key);markEditables()}
+
+function ensureQuestToggle(){
+ let b=document.getElementById('mobileQuestToggle6550');if(b)return b;
+ b=document.createElement('button');b.id='mobileQuestToggle6550';b.type='button';b.textContent='📖';b.title='Nhiệm vụ';b.setAttribute('aria-label','Mở nhiệm vụ');b.setAttribute('aria-expanded','false');
+ b.addEventListener('click',e=>{if(body.classList.contains('hudEdit6550'))return;e.stopPropagation();const on=!body.classList.contains('mobileQuestOpen6550');body.classList.toggle('mobileQuestOpen6550',on);b.setAttribute('aria-expanded',String(on))});
+ document.body.appendChild(b);return b;
+}
+function mobileHud(){
+ ensureQuestToggle();
+ if(!isMobile16()){body.classList.remove('mobileQuestOpen6550');return}
+ const q=document.getElementById('questBox');if(q)q.setAttribute('aria-hidden',String(!body.classList.contains('mobileQuestOpen6550')));
+ updateMinimapAnchor()
+}
+
+function balancePauseMenu(){
+ const menu=document.querySelector('#menu .menuBtns'), title=document.getElementById('mTitle'), fs=document.querySelector('#menu [data-fullscreen]');
+ if(menu&&title&&fs&&fs.nextElementSibling!==title)title.before(fs);
+}
+
+function ensureSettingsEntry(){
+ const panel=document.querySelector('#settings .panel');if(!panel||document.getElementById('openHudEditor6550'))return;
+ const row=document.createElement('div');row.className='row hudLayoutRow6550';row.innerHTML='<label>Bố cục HUD</label><button class="btn alt toggle" id="openHudEditor6550">Chỉnh vị trí & kích thước</button>';
+ panel.insertBefore(row,panel.querySelector('#importFile'));
+ row.querySelector('button').addEventListener('click',()=>openEditor(true));
+}
+function ensureEditor(){
+ let ed=document.getElementById('hudEditor6550');if(ed)return ed;
+ ed=document.createElement('div');ed.id='hudEditor6550';
+ const options=Object.entries(EDITABLE).map(([k,v])=>`<option value="${k}">${v[1]}</option>`).join('');
+ ed.innerHTML=`<div id="hudEditorPanel6550"><div class="hudEditTop6550"><b>CHỈNH BỐ CỤC HUD</b><button class="btn alt" id="hudDone6550">Xong</button></div><div class="hudEditControls6550"><label>Đối tượng</label><select id="hudSelect6550">${options}</select><div class="hudScaleWrap6550"><span>Kích thước</span><input id="hudScale6550" type="range" min="50" max="180" step="1" value="100"><b id="hudScaleText6550">100%</b></div><button class="btn alt" id="hudResetOne6550">Reset ô</button><button class="btn alt" id="hudResetAll6550">Reset tất cả</button></div><div class="hudEditHint6550">Chọn một HUD rồi kéo trực tiếp trên màn hình. Vị trí và kích thước được lưu tự động.</div></div>`;
+ document.body.appendChild(ed);
+ const sel=ed.querySelector('#hudSelect6550'),scale=ed.querySelector('#hudScale6550');
+ sel.value=selected;sel.addEventListener('change',()=>{selected=sel.value;syncEditor();markEditables()});
+ scale.addEventListener('input',()=>{const s=Number(scale.value)/100;state[selected]={...(state[selected]||{}),s};applyOne(selected);save();syncEditor(false)});
+ ed.querySelector('#hudResetOne6550').addEventListener('click',()=>{delete state[selected];applyOne(selected);save();syncEditor()});
+ ed.querySelector('#hudResetAll6550').addEventListener('click',()=>{state={};applyAll();save();syncEditor()});
+ ed.querySelector('#hudDone6550').addEventListener('click',()=>openEditor(false));
+ return ed;
+}
+function syncEditor(setSlider=true){const ed=ensureEditor();ed.querySelector('#hudSelect6550').value=selected;const s=Math.round((state[selected]?.s||1)*100);if(setSlider)ed.querySelector('#hudScale6550').value=s;ed.querySelector('#hudScaleText6550').textContent=s+'%';markEditables()}
+function openEditor(open){editorOpen=!!open;ensureEditor().classList.toggle('on',editorOpen);body.classList.toggle('hudEdit6550',editorOpen);if(editorOpen){document.getElementById('settings')?.classList.remove('on');syncEditor()}else{drag=null;markEditables()}}
+
+function pickEditable(target){const hit=target.closest?.('[data-hud-editable6550]');return hit?.dataset.hudEditable6550||null}
+document.addEventListener('pointerdown',e=>{
+ if(!editorOpen)return;const key=pickEditable(e.target);if(!key)return;e.preventDefault();e.stopPropagation();selected=key;syncEditor();const v=state[key]||{};drag={key,id:e.pointerId,x:e.clientX,y:e.clientY,bx:Number(v.x)||0,by:Number(v.y)||0};try{e.target.setPointerCapture?.(e.pointerId)}catch(_){}
+},true);
+document.addEventListener('pointermove',e=>{if(!editorOpen||!drag||e.pointerId!==drag.id)return;e.preventDefault();state[drag.key]={...(state[drag.key]||{}),x:Math.round(drag.bx+e.clientX-drag.x),y:Math.round(drag.by+e.clientY-drag.y)};applyOne(drag.key)},true);
+document.addEventListener('pointerup',e=>{if(!drag||e.pointerId!==drag.id)return;save();drag=null},true);
+document.addEventListener('click',e=>{if(editorOpen&&pickEditable(e.target)){e.preventDefault();e.stopImmediatePropagation()}},true);
+
+function apply(){ensureQuestToggle();ensureSettingsEntry();ensureEditor();balancePauseMenu();mobileHud();applyAll()}
+document.addEventListener('pointerdown',e=>{if(!isMobile16()||editorOpen)return;const q=document.getElementById('questBox'),b=document.getElementById('mobileQuestToggle6550');if(body.classList.contains('mobileQuestOpen6550')&&!q?.contains(e.target)&&!b?.contains(e.target)){body.classList.remove('mobileQuestOpen6550');b?.setAttribute('aria-expanded','false')}},true);
+new MutationObserver(()=>requestAnimationFrame(apply)).observe(root,{attributes:true,attributeFilter:['data-htct-layout']});
+addEventListener('resize',()=>requestAnimationFrame(apply),{passive:true});addEventListener('orientationchange',()=>requestAnimationFrame(apply),{passive:true});
+
+function version(){if(typeof CFG!=='undefined')CFG.version=V;if(typeof HTCT!=='undefined')HTCT.version=V;if(typeof S!=='undefined'&&S?.v320)S.v320.patchVersion=V;document.title='Hành Trình Cổ Thư — v'+V;document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+V)}
+if(typeof restoreSession==='function'){const prev=restoreSession;restoreSession=function(...a){const r=prev.apply(this,a);requestAnimationFrame(()=>{apply();version()});return r}}
+requestAnimationFrame(()=>{apply();version()});version();
+})();</script>
+
 </body>
 </html>
