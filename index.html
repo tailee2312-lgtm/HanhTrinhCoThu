@@ -6784,7 +6784,7 @@ function draw(t){
   else {bg.addColorStop(0,'#1a3d48');bg.addColorStop(.5,'#164038');bg.addColorStop(1,'#0f2a28');}
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
   const[cx,cy]=cam();
-  const x0=Math.max(0,Math.floor(cx/TS)),x1=Math.min(sz.w-1,Math.floor((cx+W)/TS));
+  const x0=Math.max(sz.minX||0,Math.floor(cx/TS)),x1=Math.min(sz.w-1,Math.floor((cx+W)/TS));
   const y0=Math.max(sz.minY||0,Math.floor(cy/TS)),y1=Math.min(sz.h-1,Math.floor((cy+H)/TS));
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
     const zx=zoneAt(x+.5);
@@ -6803,7 +6803,7 @@ function draw(t){
   }
   for(const o of ROOTS_DECOR)if(o.ground&&o.x>=x0-6&&o.x<=x1+6&&o.y>=y0-6&&o.y<=y1+6)drawRootsObject(o,cx,cy,t);
   for(const o of ROOTS_DECOR)if(!o.ground&&o.x>=x0-6&&o.x<=x1+6&&o.y>=y0-5&&o.y<=y1+6)list.push({y:o.y+1,d:()=>drawRootsObject(o,cx,cy,t)});
-  for(let y=Math.max(sz.minY||0,y0-3);y<=Math.min(sz.h-1,y1+2);y++)for(let x=Math.max(0,x0-2);x<=Math.min(sz.w-1,x1+2);x++){
+  for(let y=Math.max(sz.minY||0,y0-3);y<=Math.min(sz.h-1,y1+2);y++)for(let x=Math.max(sz.minX||0,x0-2);x<=Math.min(sz.w-1,x1+2);x++){
     if(grid[y]&&grid[y][x]===T.TREE&&zoneAt(x)!=='cave')
       {const v=treeVisualVariant(x,y),o=treeVisualOffset(x,y,v);list.push({y:y+.76+o.y,d:()=>drawTree(x,y,cx,cy)});}
   }
@@ -19919,13 +19919,13 @@ window.JOURNEY682={state,lessons,lesson,combine,travel,migrate,terrain};terrain(
 
 </script>
 <!-- ============================================================
-     HÀNH TRÌNH CỔ THƯ v6.83.0 — Forest progression + map fragments
+     HÀNH TRÌNH CỔ THƯ v6.83.1 — Developer forest access fix
      Scope intentionally excludes combat hurt/attack-box tuning.
      ============================================================ -->
 <script id="v683-forest-progression">
 (()=>{
   'use strict';
-  const PATCH='6.83.0';
+  const PATCH='6.83.1';
   const FOREST_X0=36, FOREST_X1=60;
   /* Northern/top section stays physically and visually unreachable until
      the Rễ Cổ chapter is finished. This is a real camera/player boundary,
@@ -19996,8 +19996,14 @@ window.JOURNEY682={state,lessons,lesson,combine,travel,migrate,terrain};terrain(
   }
   ensure683(S,S);
 
+  function developerEditing683(){
+    try{return !!window.DEV_BRIDGE678?.isEditing?.();}catch(_){return false;}
+  }
+
   function upperForestLockedFor(x){
-    return x>=FOREST_X0&&x<=FOREST_X1&&!S?.progress683?.forestUpperUnlocked;
+    /* Developer toolbox/editor is an explicit debug bypass: developers must
+       be able to inspect the entire expanded forest regardless of story state. */
+    return !developerEditing683()&&x>=FOREST_X0&&x<=FOREST_X1&&!S?.progress683?.forestUpperUnlocked;
   }
 
   /* Player boundary. Keep the existing movement/collision stack intact and
@@ -20006,7 +20012,7 @@ window.JOURNEY682={state,lessons,lesson,combine,travel,migrate,terrain};terrain(
     const prev=tryMove;
     tryMove=function(dx,dy){
       ensure683(S);
-      if(!S.progress683.forestUpperUnlocked){
+      if(!S.progress683.forestUpperUnlocked&&!developerEditing683()){
         const targetX=P.x+(Number(dx)||0), targetY=P.y+(Number(dy)||0);
         if(upperForestLockedFor(targetX)&&targetY<FOREST_UPPER_BOUNDARY_Y){
           if(dx) prev.call(this,dx,0);
@@ -20090,6 +20096,1069 @@ window.JOURNEY682={state,lessons,lesson,combine,travel,migrate,terrain};terrain(
 
   try{if(typeof CFG==='object'&&CFG)CFG.version=PATCH;}catch(_){ }
   sync683();
+})();
+</script>
+
+\n<!-- ============================================================\n     HÀNH TRÌNH CỔ THƯ v6.84.0 — Làng Thanh Mộc Expansion · Phase 1\n     Terrain/layout only. No quest progression or combat-box changes.\n     ============================================================ -->\n<script id="v684-village-expansion-phase1">
+(()=>{'use strict';
+const V='6.84.0';
+const HOME='home';
+const MIN_X=-20, TOP_MIN_Y=-18;
+const TOP={x0:3,x1:34,y0:-18,y1:1};
+const LEFT={x0:-20,x1:2,y0:4,y1:34};
+const fieldCells=new Set(),fenceCells=new Set(),stoneCells=new Set();
+const key=(x,y)=>Math.floor(x)+','+Math.floor(y);
+const home=()=>!S?.realm640||S.realm640===HOME;
+const editing=()=>!!window.DEV_BRIDGE678?.isEditing?.();
+const topCell=(x,y)=>x>=TOP.x0&&x<TOP.x1&&y>=TOP.y0&&y<TOP.y1;
+const leftCell=(x,y)=>x>=LEFT.x0&&x<LEFT.x1&&y>=LEFT.y0&&y<LEFT.y1;
+const extCell=(x,y)=>topCell(x,y)||leftCell(x,y);
+const extPoint=(x,y)=>topCell(Math.floor(x),Math.floor(y))||leftCell(Math.floor(x),Math.floor(y));
+function row(y){if(!grid[y])grid[y]=[];return grid[y]}
+function setTile(x,y,v){row(y)[x]=v}
+function getTile(x,y){return grid[y]?.[x]}
+function rect(x0,y0,x1,y1,v){for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)setTile(x,y,v)}
+function pathH(x0,x1,y,w=1){for(let yy=y;yy<y+w;yy++)for(let x=x0;x<=x1;x++)setTile(x,yy,T.PATH)}
+function pathV(y0,y1,x,w=1){for(let xx=x;xx<x+w;xx++)for(let y=y0;y<=y1;y++)setTile(xx,y,T.PATH)}
+function addField(x0,y0,x1,y1){for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){setTile(x,y,T.GRASS);fieldCells.add(key(x,y));}}
+function addFenceRect(x0,y0,x1,y1,gates=[]){const gate=new Set(gates.map(([x,y])=>key(x,y)));for(let x=x0;x<=x1;x++)for(const y of [y0,y1])if(!gate.has(key(x,y))){setTile(x,y,T.WALL);fenceCells.add(key(x,y));}for(let y=y0;y<=y1;y++)for(const x of [x0,x1])if(!gate.has(key(x,y))){setTile(x,y,T.WALL);fenceCells.add(key(x,y));}}
+function markStone(x,y){stoneCells.add(key(x,y));}
+function ensureHouse(id,x,y,type){let h=WORLD.houses.find(o=>o.id===id);if(!h){h={id,map:'village',x,y,type};WORLD.houses.push(h)}else Object.assign(h,{map:'village',x,y,type});for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++)setTile(x+dx,y+dy,T.HOUSE);}
+function ensureRoot(id,kind,x,y,solid=false){let o=ROOTS_DECOR.find(q=>q.v684id===id);if(!o){o={v684id:id,kind,x,y,solid:false};ROOTS_DECOR.push(o)}else Object.assign(o,{kind,x,y,solid:false});if(solid){setTile(Math.round(x),Math.round(y),T.WALL);markStone(Math.round(x),Math.round(y));}}
+function rebuild684(){
+ fieldCells.clear();fenceCells.clear();stoneCells.clear();
+ // TOP / NORTH: daily-life, production and logistics district.
+ for(let y=TOP.y0;y<TOP.y1;y++)for(let x=TOP.x0;x<TOP.x1;x++)setTile(x,y,T.GRASS);
+ for(let x=TOP.x0;x<TOP.x1;x++)setTile(x,TOP.y0,T.TREE);
+ for(let y=TOP.y0;y<0;y++){setTile(TOP.x0,y,T.TREE);setTile(TOP.x1-1,y,T.TREE);}
+ for(let x=TOP.x0;x<TOP.x1;x++)setTile(x,0,T.TREE);
+ // A broad main lane connects the old village to the new northern fields.
+ pathV(-17,2,21,3);
+ pathH(7,31,-8,2);
+ pathH(18,31,-13,2);
+ pathV(-13,-7,29,2);
+ // Agricultural blocks: visibly ordered, broad and easy to read from the minimap.
+ addField(5,-15,14,-10);addField(16,-15,20,-10);addField(5,-6,14,-3);
+ // Small orchard / windbreak rows.
+ for(const [x,y] of [[6,-9],[9,-9],[12,-9],[16,-6],[18,-6],[32,-11],[32,-6],[4,-12],[4,-5]])setTile(x,y,T.TREE);
+ // Livestock paddock with a two-tile gate toward the main road.
+ rect(6,-6,14,-2,T.GRASS);addFenceRect(5,-7,15,-1,[[10,-1],[11,-1]]);pathV(-2,1,10,2);
+ // Warehouse / farm landmarks.
+ ensureHouse('v684_north_farmhouse',7,-14,4);
+ ensureHouse('v684_north_warehouse',27,-14,2);
+ ensureHouse('v684_north_storehouse',27,-6,1);
+ // Keep house fronts tied to the lane without touching existing village quest coordinates.
+ pathH(8,12,-12,1);pathV(-12,-8,11,1);pathH(27,31,-12,1);pathH(27,31,-4,1);
+ // Re-open only one deliberate north entrance through the former world canopy.
+ for(let y=-1;y<=2;y++)for(let x=20;x<=24;x++)setTile(x,y,T.PATH);
+
+ // LEFT / WEST: ancestral forest, memorial ground and old stone remains.
+ for(let y=LEFT.y0;y<LEFT.y1;y++)for(let x=LEFT.x0;x<LEFT.x1;x++)setTile(x,y,T.TREE);
+ // Main ancestral road from the village edge.
+ rect(-19,17,1,21,T.GRASS);pathH(-18,2,18,2);
+ // Memorial approach and plaza.
+ rect(-16,8,-9,14,T.GRASS);pathV(10,19,-13,2);pathH(-15,-10,11,2);
+ // Cemetery clearing and a narrower trail.
+ rect(-18,22,-9,30,T.GRASS);pathV(19,29,-14,1);pathH(-16,-11,25,1);
+ // Small ruined foundation nearer the old village so the mystery is visible before the deep grove.
+ rect(-8,7,-3,13,T.GRASS);pathV(9,19,-5,1);pathH(-7,-4,10,1);
+ // Secondary grass pockets keep the forest readable instead of becoming a solid tree wall.
+ rect(-19,13,-17,17,T.GRASS);rect(-9,24,-7,27,T.GRASS);rect(-9,15,-7,17,T.GRASS);
+ // One deliberate western entrance through the former boundary canopy.
+ for(let x=-2;x<=2;x++)for(let y=17;y<=21;y++)setTile(x,y,T.PATH);
+ // Ancient memorial stones and cemetery markers.
+ ensureRoot('memorialPillarL','pillar',-15,10,true);ensureRoot('memorialPillarR','pillar',-10,10,true);ensureRoot('memorialSlab','slab',-12.5,12,false);
+ ensureRoot('oldFoundationA','slab',-7,9,false);ensureRoot('oldFoundationB','slab',-4,12,false);
+ for(const [i,x,y] of [[1,-17,24],[2,-14,24],[3,-11,24],[4,-17,27],[5,-14,27],[6,-11,27]])ensureRoot('grave'+i,'slab',x,y,false);
+ // A few stone tiles define the plaza without introducing lore/quest logic yet.
+ for(let y=11;y<=13;y++)for(let x=-15;x<=-10;x++){if(getTile(x,y)===T.GRASS){setTile(x,y,T.PATH);markStone(x,y)}}
+ // Invalidate map caches after topology changes.
+ try{minimapWorldCache=null;minimapTerrainCache=null;}catch(_){}
+}
+
+// Extend the Home realm without shifting any existing coordinate, NPC, quest item or portal.
+try{if(window.REALMS640?.home){REALMS640.home.bounds.x0=MIN_X;REALMS640.home.bounds.y0=TOP_MIN_Y;}}catch(_){}
+
+// Rebuild Phase-1 terrain after every standard world rebuild.
+if(typeof build==='function'){const prev=build;build=function(){const extras=(WORLD.houses||[]).filter(h=>String(h.id||'').startsWith('v684_')),base=(WORLD.houses||[]).filter(h=>!String(h.id||'').startsWith('v684_'));let r;WORLD.houses=base;try{r=prev.apply(this,arguments);}finally{WORLD.houses=base.concat(extras);}rebuild684();return r;};}
+rebuild684();
+
+// World renderer now understands negative X in addition to the negative-Y forest added earlier.
+if(typeof World==='object'&&World&&typeof World.getSize==='function'){const prev=World.getSize.bind(World);World.getSize=function(){const s=prev();if(home())return {...s,minX:Math.min(Number.isFinite(s.minX)?s.minX:0,MIN_X),minY:Math.min(Number.isFinite(s.minY)?s.minY:0,TOP_MIN_Y)};return s;};}
+
+function terrain684(x,y,cx,cy){
+ const k=getTile(x,y),px=Math.round(x*TS-cx),py=Math.round(y*TS-cy),h=hash(x*13+7,y*11-3);
+ ctx.save();ctx.imageSmoothingEnabled=false;
+ // Base village grass.
+ ctx.fillStyle='#89a95d';ctx.fillRect(px,py,TS+1,TS+1);
+ if(k===T.PATH){ctx.fillStyle=stoneCells.has(key(x,y))?'#9b967d':'#c6a574';ctx.fillRect(px,py,TS+1,TS+1);ctx.fillStyle=stoneCells.has(key(x,y))?'rgba(69,79,67,.25)':'rgba(95,70,42,.16)';if(h>.45)ctx.fillRect(px+TS*.12,py+TS*.42,TS*.45,Math.max(1,TS*.035));}
+ else if(k===T.WATER){ctx.fillStyle='#4f8992';ctx.fillRect(px,py,TS+1,TS+1);}
+ if(fieldCells.has(key(x,y))){ctx.fillStyle='#6f8f46';ctx.fillRect(px,py,TS+1,TS+1);ctx.fillStyle='#b7c86a';for(let yy=3;yy<TS;yy+=Math.max(5,Math.round(TS*.19)))ctx.fillRect(px+2,py+yy,TS-4,Math.max(1,Math.round(TS*.045)));ctx.fillStyle='rgba(71,79,37,.36)';for(let xx=4;xx<TS;xx+=Math.max(7,Math.round(TS*.28)))ctx.fillRect(px+xx,py+2,1,TS-4);}
+ if(fenceCells.has(key(x,y))){const u=TS/16;ctx.fillStyle='#5b3d28';ctx.fillRect(px+2*u,py+7*u,12*u,2*u);ctx.fillRect(px+3*u,py+3*u,2*u,11*u);ctx.fillRect(px+11*u,py+3*u,2*u,11*u);ctx.fillStyle='#a77a49';ctx.fillRect(px+2*u,py+6*u,12*u,1*u);}
+ ctx.restore();
+}
+const prevDrawTile=drawTile;drawTile=function(x,y,cx,cy,t){if(home()&&extCell(x,y))return terrain684(x,y,cx,cy);if(home()&&x<0){ctx.fillStyle='#071a13';ctx.fillRect(Math.round(x*TS-cx),Math.round(y*TS-cy),TS+1,TS+1);return;}return prevDrawTile.apply(this,arguments);};
+
+// Collision for the added negative-coordinate land only; existing combat/hitbox logic is untouched.
+const prevHit=hit;
+function hard684(tx,ty){const k=getTile(tx,ty);return k==null||k===T.TREE||k===T.WATER||k===T.HOUSE||k===T.GATE||k===T.WALL;}
+function collision684(x,y){const r=.27;return hard684(Math.floor(x-r),Math.floor(y-r*.6))||hard684(Math.floor(x+r),Math.floor(y-r*.6))||hard684(Math.floor(x-r),Math.floor(y+r*.5))||hard684(Math.floor(x+r),Math.floor(y+r*.5));}
+hit=function(x,y){if(home()){const ix=Math.floor(x),iy=Math.floor(y),nearTop=(x>=TOP.x0-.6&&x<TOP.x1+.6&&y<TOP.y1+.6&&y>=TOP.y0-.6),nearLeft=(x>=LEFT.x0-.6&&x<LEFT.x1+.6&&y>=LEFT.y0-.6&&y<LEFT.y1+.6);if(nearTop||nearLeft)return collision684(x,y);}return prevHit.apply(this,arguments);};
+
+// Camera can actually travel into the added land. Forest-specific north limits remain owned by v6.81/v6.83.
+if(typeof Camera==='object'&&Camera&&typeof Camera.clamp==='function'){const prev=Camera.clamp.bind(Camera);Camera.clamp=function(){const wx=this.x,wy=this.y,wtx=this.tx,wty=this.ty;const r=prev();try{if(home()){const b=REALMS640.home.bounds,minX=MIN_X*TS,maxX=b.x1*TS;this.x=clamp(wx,minX,Math.max(minX,maxX-W));this.tx=clamp(wtx,minX,Math.max(minX,maxX-W));let minY=0;if(editing())minY=Math.min(TOP_MIN_Y,Number(window.FOREST681?.bounds?.y0)||0)*TS;else if(P.x<36)minY=TOP_MIN_Y*TS;else if(P.x>=44&&P.x<60&&window.FOREST681?.visible?.())minY=(window.FOREST681.bounds?.y0||-56)*TS;const maxY=b.y1*TS;if(P.x<36||editing()){this.y=clamp(wy,minY,Math.max(minY,maxY-H));this.ty=clamp(wty,minY,Math.max(minY,maxY-H));}}}catch(_){}return r;};}
+
+// Save/load migration: old validators assume x/y >= 0, so preserve valid village-extension positions explicitly.
+function walkablePoint684(x,y){if(!Number.isFinite(x)||!Number.isFinite(y)||!extPoint(x,y))return false;return !collision684(x,y);}
+if(typeof normalizeState==='function'){const prev=normalizeState;normalizeState=function(raw){const ext=raw&&(!raw.realm640||raw.realm640==='home')&&walkablePoint684(Number(raw.px),Number(raw.py));const safe=ext?{...raw,px:WORLD.start.x,py:WORLD.start.y}:raw;const out=prev.call(this,safe);if(ext){out.px=Number(raw.px);out.py=Number(raw.py);out.realm640='home';out.villageExpansion684={phase:1,version:V};}return out;};}
+if(typeof captureState==='function'){const prev=captureState;captureState=function(){const out=prev.apply(this,arguments);if(out&&home()&&extPoint(P.x,P.y)){out.px=P.x;out.py=P.y;out.realm640='home';out.villageExpansion684={phase:1,version:V};if(out.forest681)out.forest681.position=null;}return out;};}
+if(typeof restoreSession==='function'){const prev=restoreSession;restoreSession=function(raw){const x=Number(raw?.px),y=Number(raw?.py),ext=walkablePoint684(x,y);const r=prev.apply(this,arguments);rebuild684();if(ext){S.realm640='home';S.px=x;S.py=y;P.x=x;P.y=y;Camera.reset(P.x,P.y);}version684();return r;};}
+
+// Render expansion on minimap/map without changing existing map discovery rules.
+function drawMapExpansion684(c,L){for(let y=TOP_MIN_Y;y<34;y++)for(let x=MIN_X;x<34;x++){if(!extCell(x,y))continue;const k=getTile(x,y),px=Math.floor(L.ox+x*L.scale),py=Math.floor(L.oy+y*L.scale),pw=Math.max(1,Math.ceil(L.scale)),ph=Math.max(1,Math.ceil(L.scale));if(k===T.PATH)c.fillStyle=stoneCells.has(key(x,y))?'#98927c':'#d1b17a';else if(k===T.TREE)c.fillStyle='#315c3d';else if(k===T.WALL)c.fillStyle='#8b704f';else if(k===T.HOUSE)c.fillStyle='#79523a';else c.fillStyle=fieldCells.has(key(x,y))?'#708d48':'#7f9d59';c.fillRect(px,py,pw,ph);}}
+if(typeof drawMinimapTerrain==='function'){const prev=drawMinimapTerrain;drawMinimapTerrain=function(c,L){const r=prev.apply(this,arguments);if(home())drawMapExpansion684(c,L);return r;};}
+if(typeof paintMapCanvas==='function'){const prev=paintMapCanvas;paintMapCanvas=function(cv,big){const r=prev.apply(this,arguments);if(!home())return r;const c=cv.getContext('2d'),L=mapLayout(cv,big);c.save();c.beginPath();c.arc(L.w/2,L.h/2,L.r,0,Math.PI*2);c.clip();drawMapExpansion684(c,L);for(const h of WORLD.houses.filter(h=>String(h.id).startsWith('v684_')))mapDrawHouseIcon(c,L.ox+(h.x+1)*L.scale,L.oy+(h.y+1.3)*L.scale,big);mapDrawPortrait(c,L.ox+P.x*L.scale,L.oy+P.y*L.scale,null,'player',big,0);c.restore();return r;};}
+
+// Keep Phase-1 topology present if Developer Studio reapplies its positive-grid snapshot.
+if(typeof update==='function'){const prev=update;let guard=0;update=function(dt){if((guard-=dt)<=0){guard=.75;if(getTile(22,-8)==null||getTile(-1,19)==null)rebuild684();}return prev.apply(this,arguments);};}
+
+function version684(){CFG.version=V;document.title='Hành Trình Cổ Thư — v'+V;document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+V);try{if(S.v320)S.v320.patchVersion=V;}catch(_){}const e=document.querySelector('#devHeader678 b');if(e)e.textContent='Developer Toolbox · v'+V;}
+window.VILLAGE_EXPANSION684={phase:1,bounds:{top:{...TOP},left:{...LEFT}},rebuild:rebuild684,fieldCells,fenceCells,version:V};
+rebuild684();version684();requestAnimationFrame(()=>{rebuild684();version684();try{Camera.clamp();}catch(_){}});
+})();
+</script>\n
+<!-- ============================================================
+     HÀNH TRÌNH CỔ THƯ v6.85.0 — Làng Thanh Mộc Expansion · Phase 2
+     Environmental storytelling only. No quest/combat-box changes.
+     ============================================================ -->
+<script id="v685-village-expansion-phase2">
+(()=>{'use strict';
+const V='6.85.0', HOME='home';
+const home=()=>!S?.realm640||S.realm640===HOME;
+const k=(x,y)=>Math.floor(x)+','+Math.floor(y);
+const clue=new Map();
+const mark=(x,y,type,rot=0)=>clue.set(k(x,y),{type,rot});
+
+/* NORTH / TOP — ordinary work district with details that should feel slightly "too old". */
+for(let x=22;x<=30;x++){ mark(x,-8,'wheel',x&1); }
+for(let y=-15;y<=-10;y++) mark(15,y,'channel',y&1);
+for(const p of [[6,-15],[14,-14],[20,-14],[31,-12],[26,-5]]) mark(p[0],p[1],'survey');
+for(const p of [[26,-12],[30,-5]]) mark(p[0],p[1],'cargoSeal');
+mark(19,-11,'buriedLine'); mark(11,-5,'buriedLine');
+
+/* WEST / LEFT — ritual/memorial district: the same visual language appears more clearly. */
+for(const p of [[-15,11],[-14,11],[-13,11],[-12,11],[-11,11],[-10,11]]) mark(p[0],p[1],'procession');
+mark(-13,12,'twinMosaic');
+for(const p of [[-8,9],[-7,9],[-6,9],[-5,9],[-4,9],[-8,12],[-7,12],[-6,12],[-5,12],[-4,12]]) mark(p[0],p[1],'foundation');
+for(const p of [[-17,23],[-14,23],[-11,23],[-17,26],[-14,26],[-11,26]]) mark(p[0],p[1],'graveTrace');
+for(const p of [[-16,16],[-11,16],[-8,17]]) mark(p[0],p[1],'rootVein');
+
+function ensureDecor(id,kind,x,y,ground=false){
+ let o=ROOTS_DECOR.find(q=>q&&q.v685id===id);
+ if(!o){o={v685id:id,kind,x,y,solid:false,ground:!!ground};ROOTS_DECOR.push(o)}
+ else Object.assign(o,{kind,x,y,solid:false,ground:!!ground});
+ return o;
+}
+function installDecor685(){
+ /* North: weathered boundary stones half absorbed into the working landscape. */
+ ensureDecor('north_old_marker_a','slab',5.2,-14.7,true);
+ ensureDecor('north_old_marker_b','slab',19.1,-14.8,true);
+ ensureDecor('north_old_marker_c','slab',31.1,-10.6,true);
+ /* West: progressively older/broken pieces as the player goes deeper. */
+ ensureDecor('west_road_broken_pillar','pillar',-18.0,15.7,false);
+ ensureDecor('west_road_fallen_slab','slab',-9.0,16.5,true);
+ ensureDecor('west_memorial_side_a','pillar',-16.6,9.0,false);
+ ensureDecor('west_memorial_side_b','pillar',-8.9,9.2,false);
+ ensureDecor('west_cemetery_fallen','slab',-8.2,27.8,true);
+ ensureDecor('west_deep_marker','slab',-18.2,31.0,true);
+}
+installDecor685();
+
+function rect(c,x,y,w,h,color){c.fillStyle=color;c.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));}
+function twinGlyph(c,px,py,u,alpha=.65){
+ c.save();c.globalAlpha=alpha;c.fillStyle='#536b58';
+ rect(c,px+5*u,py+4*u,2*u,7*u,'#536b58');rect(c,px+9*u,py+4*u,2*u,7*u,'#536b58');
+ rect(c,px+4*u,py+5*u,3*u,2*u,'#75836d');rect(c,px+9*u,py+8*u,3*u,2*u,'#75836d');
+ c.restore();
+}
+function drawGround685(x,y,cx,cy){
+ const d=clue.get(k(x,y)); if(!d)return;
+ const px=Math.round(x*TS-cx),py=Math.round(y*TS-cy),u=TS/16;
+ ctx.save();ctx.imageSmoothingEnabled=false;
+ if(d.type==='wheel'){
+   ctx.globalAlpha=.28;ctx.fillStyle='#655b40';
+   rect(ctx,px+2*u,py+(d.rot?5:4)*u,13*u,1*u,'#655b40');rect(ctx,px+2*u,py+(d.rot?11:10)*u,13*u,1*u,'#655b40');
+   if((x+y)%3===0){rect(ctx,px+7*u,py+3*u,2*u,2*u,'#786848');rect(ctx,px+11*u,py+12*u,2*u,1*u,'#786848');}
+ }else if(d.type==='channel'){
+   ctx.globalAlpha=.48;rect(ctx,px+6*u,py,4*u,16*u,'#716f5c');rect(ctx,px+7*u,py,2*u,16*u,'#899077');
+   if(d.rot)rect(ctx,px+6*u,py+7*u,4*u,1*u,'#495a4b');
+ }else if(d.type==='survey'){
+   ctx.globalAlpha=.72;rect(ctx,px+4*u,py+5*u,8*u,7*u,'#7d806b');rect(ctx,px+5*u,py+5*u,6*u,1*u,'#a2a38b');twinGlyph(ctx,px,py,u,.44);
+ }else if(d.type==='cargoSeal'){
+   ctx.globalAlpha=.32;rect(ctx,px+3*u,py+4*u,10*u,8*u,'#745d3f');twinGlyph(ctx,px,py,u,.72);
+ }else if(d.type==='buriedLine'){
+   ctx.globalAlpha=.25;ctx.strokeStyle='#69765f';ctx.lineWidth=Math.max(1,u*.7);ctx.beginPath();ctx.moveTo(px+2*u,py+13*u);ctx.lineTo(px+6*u,py+9*u);ctx.lineTo(px+10*u,py+10*u);ctx.lineTo(px+14*u,py+5*u);ctx.stroke();
+ }else if(d.type==='procession'){
+   ctx.globalAlpha=.4;rect(ctx,px+1*u,py+7*u,14*u,2*u,'#787866'); if((x&1)===0)rect(ctx,px+7*u,py+5*u,2*u,6*u,'#5f6959');
+ }else if(d.type==='twinMosaic'){
+   ctx.globalAlpha=.62;rect(ctx,px+2*u,py+2*u,12*u,12*u,'#858572');rect(ctx,px+3*u,py+3*u,10*u,10*u,'#6e7465');twinGlyph(ctx,px,py,u,.92);
+ }else if(d.type==='foundation'){
+   ctx.globalAlpha=.35;rect(ctx,px,py+2*u,16*u,2*u,'#707365');rect(ctx,px,py+12*u,16*u,2*u,'#5e6759'); if((x+y)&1)rect(ctx,px+7*u,py+2*u,2*u,12*u,'#606a5b');
+ }else if(d.type==='graveTrace'){
+   ctx.globalAlpha=.26;ctx.strokeStyle='#66705f';ctx.lineWidth=Math.max(1,u*.6);ctx.strokeRect(px+4*u,py+4*u,8*u,9*u);rect(ctx,px+7*u,py+2*u,2*u,4*u,'#727967');
+ }else if(d.type==='rootVein'){
+   ctx.globalAlpha=.38;ctx.strokeStyle='#4f653f';ctx.lineWidth=Math.max(1,u*.8);ctx.beginPath();ctx.moveTo(px,py+12*u);ctx.bezierCurveTo(px+5*u,py+8*u,px+8*u,py+14*u,px+16*u,py+5*u);ctx.stroke();
+ }
+ ctx.restore();
+}
+
+/* Overlay clues directly on terrain so they stay below actors and do not alter hit/attack boxes. */
+if(typeof drawTile==='function'){
+ const prev=drawTile;
+ drawTile=function(x,y,cx,cy,t){const r=prev.apply(this,arguments);if(home()&&clue.has(k(x,y)))drawGround685(x,y,cx,cy);return r;};
+}
+
+/* Keep environmental pieces after any world rebuild / developer layout refresh. */
+function rebuild685(){installDecor685();try{minimapWorldCache=null;minimapTerrainCache=null;}catch(_){}}
+if(typeof build==='function'){
+ const prev=build;
+ build=function(){const r=prev.apply(this,arguments);rebuild685();return r;};
+}
+
+/* Save metadata only; Phase 2 introduces no new progression state. */
+if(typeof captureState==='function'){
+ const prev=captureState;
+ captureState=function(){const out=prev.apply(this,arguments);if(out&&home()&&window.VILLAGE_EXPANSION684){out.villageExpansion684={phase:2,version:V};}return out;};
+}
+if(typeof normalizeState==='function'){
+ const prev=normalizeState;
+ normalizeState=function(raw){const out=prev.apply(this,arguments);if(out?.villageExpansion684)out.villageExpansion684={...out.villageExpansion684,phase:Math.max(2,out.villageExpansion684.phase||0),version:V};return out;};
+}
+
+function version685(){
+ try{CFG.version=V;}catch(_){} try{if(typeof HTCT!=='undefined')HTCT.version=V;}catch(_){} try{if(S?.v320)S.v320.patchVersion=V;}catch(_){}
+ document.title='Hành Trình Cổ Thư — v'+V;document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+V);
+ const e=document.querySelector('#devHeader678 b');if(e)e.textContent='Developer Toolbox · v'+V;
+}
+window.VILLAGE_EXPANSION685={phase:2,version:V,clues:clue,install:rebuild685};
+rebuild685();version685();requestAnimationFrame(()=>{rebuild685();version685();});
+})();
+</script>
+
+
+<!-- ============================================================
+     HÀNH TRÌNH CỔ THƯ v6.86.0 — Làng Thanh Mộc Expansion · Phase 3
+     Village life / ambient NPC schedules. No quest/combat-box changes.
+     ============================================================ -->
+<script id="v686-village-expansion-phase3">
+(()=>{'use strict';
+const V='6.86.0', HOME='home';
+const home=()=>!S?.realm640||S.realm640===HOME;
+const editing=()=>!!window.DEV_BRIDGE678?.isEditing?.();
+const roleMap={
+  v686_farmer_hoa:'Nông phu',
+  v686_herder_lam:'Chăm gia súc',
+  v686_keeper_van:'Giữ kho',
+  v686_porter_binh:'Khuân hàng',
+  v686_child_may:'Trẻ trong làng',
+  v686_carrier_tin:'Vận chuyển',
+  v686_memorial_visitor:'Khách viếng',
+  v686_night_watch:'Tuần làng'
+};
+const A=[
+ {id:'v686_farmer_hoa',name:'Hòa',emoji:'🧑‍🌾',x:7.2,y:-12.0,speed:.34,route:[[7.2,-12],[13.2,-12],[13.2,-10.2],[7.2,-10.2]],rain:[9.4,-11.8],lines:['Luống phía bắc vừa xới lại, đi sát mép đường sẽ sạch chân hơn.','Mấy phiến đá nằm dưới ruộng có từ trước khi nhà tôi đến đây. Cày tránh chúng là được.','Năm nay đất giữ ẩm tốt. Chỉ có đoạn gần rãnh đá là cứng khác thường.'],rainLine:'Mưa xuống là tôi tạm né dưới mái. Ruộng này uống nước rất nhanh.'},
+ {id:'v686_herder_lam',name:'Lâm',emoji:'🧑‍🌾',x:8.0,y:-4.0,speed:.28,route:[[8,-4],[13,-4],[13,-2.4],[7.2,-2.4],[7.2,-5.5]],rain:[9.1,-5.6],lines:['Đàn vật quen tiếng chân người rồi, đừng chạy sát hàng rào là được.','Cổng chuồng phải để trống hai ô, xe chở cỏ mới quay đầu được.','Đám cỏ ở đây mọc nhanh hơn phía làng cũ. Chắc vì đất thấp hơn một chút.'],rainLine:'Mưa thì tôi giữ chúng sát phía trong. Hàng rào cũ nhưng vẫn chắc.'},
+ {id:'v686_keeper_van',name:'Vân',emoji:'👩',x:29.2,y:-12.0,speed:.20,route:[[29.2,-12],[31.0,-12],[31.0,-9.2],[29.2,-9.2]],rain:[29.2,-12],lines:['Kho phía bắc giữ nông cụ và hàng dự trữ. Mọi thứ đều phải ghi dấu trước khi xếp vào.','Có vài dấu kiểm kê cũ chẳng ai còn dùng, nhưng vẫn còn in trên mấy thùng lâu năm.','Đường vận chuyển rộng hơn nhìn thấy đấy. Ngày trước xe hàng đi qua đây nhiều hơn bây giờ.'],rainLine:'Mưa thế này phải kiểm tra mái kho trước, hàng ẩm là phiền lắm.'},
+ {id:'v686_porter_binh',name:'Bình',emoji:'🧔',x:29.3,y:-7.8,speed:.44,route:[[29.3,-7.8],[24.0,-7.8],[22.4,-5.8],[22.4,-1.4],[24.0,-1.4]],rain:[30.0,-11.5],lines:['Tôi đang chuyển đồ từ kho xuống làng. Đường rộng nhưng chỗ có rãnh đá thì bánh xe hay lệch.','Hàng nhẹ đi trước, nông cụ nặng để chuyến sau. Làm vậy đỡ kẹt ở khúc cua.','Phía trên nhìn vắng thôi, tới mùa thu hoạch là đường này kín người.'],rainLine:'Mưa lớn thì dừng xe. Đường đá trơn hơn nhìn thấy nhiều.'},
+ {id:'v686_child_may',name:'Mây',emoji:'🧒',x:21.2,y:-4.0,speed:.62,route:[[21.2,-4],[23.2,-4],[23.2,-1.8],[21.2,-1.8],[21.2,-6.2],[23.2,-6.2]],rain:[10.0,-11.7],lines:['Con chỉ chạy ở đường phía trên thôi. Mẹ dặn không được sang rừng bên trái khi trời sắp tối.','Chỗ kho có nhiều thùng lắm, nhưng cô Vân không cho con trèo lên.','Con thấy mấy dấu giống nhau trên đá với trên thùng hàng. Người lớn bảo đừng nghịch vào.'],rainLine:'Mưa rồi! Con phải đứng gần hiên, không là mẹ mắng.'},
+ {id:'v686_carrier_tin',name:'Tín',emoji:'🧑',x:27.0,y:-4.2,speed:.40,route:[[27,-4.2],[30.5,-4.2],[30.5,-7.8],[24.0,-7.8],[22.5,-7.8]],rain:[29.7,-4.2],lines:['Kho nhỏ giữ đồ dùng hằng ngày, kho phía trên mới là nơi cất hàng dài hạn.','Tôi đi tuyến này nhiều đến mức nhắm mắt cũng biết khúc nào xóc.','Nếu thấy thùng có dấu song đôi thì cứ để nguyên. Đó là ký hiệu cũ của kho.'],rainLine:'Mưa thì hàng phải phủ bạt. Tôi tranh thủ kiểm lại dây buộc.'},
+ {id:'v686_memorial_visitor',name:'Người viếng mộ',emoji:'🧓',x:-5.0,y:18.8,speed:.25,route:[[-5,18.8],[-9.5,18.8],[-12.8,18.8],[-12.8,15.2],[-10.5,15.2]],west:true,lines:['Tôi chỉ ghé đặt một nhành lá rồi về. Người làng ít đi sâu hơn khi không có việc.','Đường này yên hơn trước nhiều. Cây mọc nhanh, còn đá thì chẳng thay đổi mấy.','Nếu đi tiếp, nhớ bước theo lối cũ. Trong rừng có nhiều nền đá chìm dưới cỏ.'],rainLine:'Trời mưa thì hôm nay tôi không vào sâu nữa.'},
+ {id:'v686_night_watch',name:'Người tuần làng',emoji:'🧥',x:21.7,y:-1.5,speed:.38,route:[[21.7,-1.5],[22.5,-7.7],[28.8,-7.7],[29.2,-11.6],[24.0,-7.7],[22.0,-2.0]],night:true,lines:['Tôi đi một vòng kho và đường phía bắc rồi quay lại làng.','Ban đêm khu sản xuất yên lắm. Chỉ cần để ý kho và hàng rào.','Phía rừng tổ bên trái thì chẳng mấy ai sang vào giờ này.'],rainLine:'Đêm mưa khó nhìn dấu chân. Tôi sẽ đi chậm hơn một vòng.'}
+];
+const byId=new Map(A.map(n=>[n.id,n]));
+const state=new Map(A.map((n,i)=>[n.id,{i:n.route.length>1?1:0,wait:(i%3)*.7}]));
+const animKey={
+ v686_farmer_hoa:'npc_new_1',v686_herder_lam:'npc_new_0',v686_keeper_van:'npc_new_2',v686_porter_binh:'npc_new_4',
+ v686_child_may:'npc_new_3',v686_carrier_tin:'npc_new_6',v686_memorial_visitor:'npc_new_5',v686_night_watch:'npc_new_7'
+};
+for(const n of A){try{if(typeof NpcAnims==='object'&&!NpcAnims[n.id])NpcAnims[n.id]=makeAnim(animKey[n.id],4,3);}catch(_){}}
+
+const prevRole=npcRole;
+npcRole=function(n){return roleMap[n?.id]||prevRole.apply(this,arguments);};
+
+function night(){try{return !!isNight();}catch(_){return false;}}
+function visible(n){if(!home())return false;const ng=night();if(n.night)return ng;if(ng)return false;if(n.west&&EV?.rain)return false;return true;}
+function targetFor(n,st){
+ if(EV?.rain&&n.rain)return n.rain;
+ return n.route[Math.max(0,Math.min(n.route.length-1,st.i))]||[n.x,n.y];
+}
+function nodePause(n,st){const h=Math.abs(Math.sin((st.i+1)*1.91+n.id.length*.37));return 1.2+h*2.6;}
+function tick(dt){
+ if(!home()||!window._inPlay||editing())return;
+ for(const n of A){
+   if(!visible(n))continue;
+   const st=state.get(n.id);if(!st)continue;
+   if(Math.hypot(P.x-n.x,P.y-n.y)<1.55||dlg?.open){st.wait=Math.max(st.wait,.2);continue;}
+   if(st.wait>0){st.wait=Math.max(0,st.wait-dt);continue;}
+   const [tx,ty]=targetFor(n,st),dx=tx-n.x,dy=ty-n.y,d=Math.hypot(dx,dy);
+   if(d<.08){
+     if(!(EV?.rain&&n.rain)){st.i=(st.i+1)%n.route.length;st.wait=nodePause(n,st);}else st.wait=.7;
+     continue;
+   }
+   const speed=n.speed*(EV?.rain ? .78 : 1),step=Math.min(d,speed*dt);
+   n.x+=dx/d*step;n.y+=dy/d*step;
+ }
+}
+if(typeof update==='function'){const prev=update;update=function(dt){const r=prev.apply(this,arguments);tick(dt);return r;};}
+
+function lineFor(n){
+ if(EV?.rain&&n.rainLine)return [n.rainLine];
+ const lines=n.lines||['Mọi việc vẫn như thường ngày.'];
+ const idx=Math.abs(Math.floor(((EV?.dayT||0)*100+n.id.length*7)))%lines.length;
+ return [lines[idx]];
+}
+if(typeof interactables==='function'){
+ const prev=interactables;
+ interactables=function(){const list=prev.apply(this,arguments);if(home())for(const n of A)if(visible(n))list.push({kind:'ambientNpc686',ref:n,x:n.x,y:n.y,reach:1.28,label:'Trò chuyện với '+n.name,btn:'Nói'});return list;};
+}
+if(typeof interactionHint==='function'){
+ const prev=interactionHint;
+ interactionHint=function(o){if(o?.kind==='ambientNpc686')return 'Trò chuyện với '+(o.ref?.name||'người dân');return prev.apply(this,arguments);};
+}
+if(typeof interact==='function'){
+ const prev=interact;
+ interact=function(o){if(o?.kind==='ambientNpc686'){const n=o.ref;return say(n.name,lineFor(n),null,n.id);}return prev.apply(this,arguments);};
+}
+
+const workProps=[
+ {kind:'crates',x:30.7,y:-12.0,s:1},{kind:'crates',x:27.0,y:-4.1,s:.85},{kind:'basket',x:14.0,y:-10.0,s:.9},
+ {kind:'hay',x:13.7,y:-2.2,s:1},{kind:'trough',x:7.0,y:-2.5,s:1},{kind:'sacks',x:25.8,y:-7.9,s:.9}
+];
+function pxRect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));}
+function drawProp(p,cx,cy){const x=p.x*TS-cx,y=p.y*TS-cy,u=TS/16*(p.s||1);ctx.save();ctx.imageSmoothingEnabled=false;
+ if(p.kind==='crates'){pxRect(x-5*u,y-5*u,10*u,7*u,'#6f4b2e');pxRect(x-4*u,y-4*u,8*u,1*u,'#a77b4a');pxRect(x-1*u,y-5*u,2*u,7*u,'#4e3525');pxRect(x+2*u,y-10*u,8*u,6*u,'#795337');pxRect(x+3*u,y-9*u,6*u,1*u,'#b18350');}
+ else if(p.kind==='basket'){pxRect(x-5*u,y-2*u,10*u,5*u,'#815a33');pxRect(x-4*u,y-1*u,8*u,1*u,'#c79b59');ctx.strokeStyle='#7a532f';ctx.lineWidth=Math.max(1,u);ctx.beginPath();ctx.arc(x,y-2*u,4*u,Math.PI,0);ctx.stroke();}
+ else if(p.kind==='hay'){pxRect(x-6*u,y-4*u,12*u,6*u,'#b99a4c');pxRect(x-5*u,y-3*u,10*u,1*u,'#dfc46c');pxRect(x-2*u,y-4*u,1*u,6*u,'#826c38');pxRect(x+3*u,y-4*u,1*u,6*u,'#826c38');}
+ else if(p.kind==='trough'){pxRect(x-7*u,y-2*u,14*u,4*u,'#5b4936');pxRect(x-6*u,y-1*u,12*u,2*u,'#61909a');pxRect(x-5*u,y+2*u,2*u,3*u,'#493728');pxRect(x+3*u,y+2*u,2*u,3*u,'#493728');}
+ else if(p.kind==='sacks'){pxRect(x-5*u,y-6*u,6*u,8*u,'#b5a078');pxRect(x+1*u,y-5*u,6*u,7*u,'#a78f69');pxRect(x-4*u,y-5*u,4*u,1*u,'#d8c59a');pxRect(x+2*u,y-4*u,4*u,1*u,'#d1bb8e');}
+ ctx.restore();}
+function smoke(cx,cy,t,x,y,seed=0){const sx=x*TS-cx,sy=y*TS-cy;ctx.save();for(let i=0;i<4;i++){const q=(t*.12+i*.24+seed)%1,dx=Math.sin(t*.8+i*2.1+seed)*TS*.08*q,yy=sy-q*TS*1.15;ctx.globalAlpha=(1-q)*.18;ctx.fillStyle='#d9ddd1';const s=TS*(.10+.12*q);ctx.fillRect(Math.round(sx+dx-s/2),Math.round(yy-s/2),Math.round(s),Math.round(s));}ctx.restore();}
+function lantern(n,cx,cy,t){const x=n.x*TS-cx,y=n.y*TS-cy-TS*.25,p=.85+.15*Math.sin(t*3.2);ctx.save();const g=ctx.createRadialGradient(x,y,2,x,y,TS*1.1);g.addColorStop(0,'rgba(255,218,120,'+(.20*p)+')');g.addColorStop(1,'rgba(255,190,90,0)');ctx.fillStyle=g;ctx.fillRect(x-TS*1.2,y-TS*1.2,TS*2.4,TS*2.4);ctx.restore();}
+if(typeof drawWorld==='function'){
+ const prev=drawWorld;
+ drawWorld=function(t){const r=prev.apply(this,arguments);if(!home())return r;const [cx,cy]=cam();
+   for(const p of workProps)drawProp(p,cx,cy);
+   smoke(cx,cy,t,8.3,-15.1,.1);smoke(cx,cy,t,28.3,-15.0,.6);
+   const draw=A.filter(visible).slice().sort((a,b)=>a.y-b.y);
+   for(const n of draw){if(n.night)lantern(n,cx,cy,t);drawNPC(n,cx,cy,t);}
+   return r;};
+}
+
+/* Phase 3 adds no quest progression. Save only a harmless version marker. */
+if(typeof captureState==='function'){
+ const prev=captureState;
+ captureState=function(){const out=prev.apply(this,arguments);if(out&&home()&&window.VILLAGE_EXPANSION684)out.villageExpansion684={phase:3,version:V};return out;};
+}
+if(typeof normalizeState==='function'){
+ const prev=normalizeState;
+ normalizeState=function(raw){const out=prev.apply(this,arguments);if(out?.villageExpansion684)out.villageExpansion684={...out.villageExpansion684,phase:Math.max(3,out.villageExpansion684.phase||0),version:V};return out;};
+}
+function version686(){
+ try{CFG.version=V;}catch(_){}try{if(typeof HTCT!=='undefined')HTCT.version=V;}catch(_){}try{if(S?.v320)S.v320.patchVersion=V;}catch(_){}
+ document.title='Hành Trình Cổ Thư — v'+V;document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+V);const e=document.querySelector('#devHeader678 b');if(e)e.textContent='Developer Toolbox · v'+V;
+}
+window.VILLAGE_EXPANSION686={phase:3,version:V,ambient:A,state,visible,workProps};
+version686();requestAnimationFrame(version686);
+})();
+
+</script>
+
+
+
+<!-- ============================================================
+     HÀNH TRÌNH CỔ THƯ v6.87.0 — Làng Thanh Mộc Expansion · Phase 4
+     Main-character foreshadowing / layered histories.
+     No quest progression and no combat hurt/attack-box changes.
+     ============================================================ -->
+<script id="v687-village-expansion-phase4">
+(()=>{'use strict';
+const V='6.87.0';
+const MANAGED=new Set(['elder','mai','bo','ranger','farmer1','granny1','smith']);
+const PROFILES=Object.freeze({
+ elder:{arc:'Biết nhiều hơn những gì ông nói; từng chứng kiến một biến cố liên quan hệ phong ấn.',cues:{
+  0:['Mấy phiến đá có dấu song đôi quanh làng cứ để nguyên nhé. Có những thứ nhìn như đồ cũ, nhưng dời đi lại làm mất dấu đường của người trước.','Làng này lớn dần theo năm tháng, nhưng vài lối đi thì có trước cả những căn nhà. Không phải đường nào cũ cũng nên lát lại.'],
+  1:['Cánh cổng phía đông mở lại rồi à… tốt. Nhưng con nhớ nhé, ngày trước nó không chỉ được dựng để ngăn thú rừng.','Ta từng nghe người già gọi con đường phía bắc là “đường chuyển trạm”. Khi ấy ta cũng nghĩ họ chỉ nói chuyện vận chuyển hàng.'],
+  2:['Dạo này những dấu cũ xuất hiện dày hơn. Có lẽ vài chuyện ta từng cho là lời truyền miệng không hẳn chỉ là chuyện kể.','Nếu con thấy cùng một ký hiệu ở kho, trong rừng và trên đá cổ, đừng vội kết luận. Hãy nhớ nơi nào xuất hiện trước.'],
+  3:['Tiếng ngân từ Rễ Cổ… lâu lắm rồi ta mới nghe lại âm thanh ấy. Ta cứ tưởng đời mình sẽ không còn nghe lần thứ hai.','Có những điều ta chưa kể không phải vì muốn giấu con mãi. Chỉ là nói quá sớm sẽ khiến con nhìn mọi người bằng câu trả lời có sẵn.']
+ }},
+ mai:{arc:'Gia đình gắn với việc ghi chép và bảo quản ký hiệu cũ; bản thân chưa hiểu đầy đủ nguồn gốc.',cues:{
+  0:['Trong sổ quầy có vài dấu kiểm kê cũ giống hệt ký hiệu trên mấy phiến đá. Chị vẫn giữ lại vì xóa đi trông… không đúng lắm.','Mẹ chị từng bắt chép một mẫu dấu hai nét vào cuối sổ mỗi năm. Hỏi để làm gì thì bà chỉ bảo “để khỏi quên”.'],
+  1:['Mấy thùng cũ ở kho phía trên có cách đánh dấu giống sổ nhà chị. Lạ là chẳng ai nhớ ai đã đặt ra quy ước ấy.','Có vài trang sổ rất cũ chỉ ghi số chuyến hàng mà không ghi người gửi. Chị luôn thấy chuyện đó kỳ lạ.'],
+  2:['Một số ký hiệu trong Cổ Thư trông quen hơn chị tưởng. Không phải vì chị từng thấy cuốn sách — mà vì chúng giống nét mẹ dạy chị chép hồi nhỏ.','Chị thử đối chiếu sổ quầy với mấy dấu trên đá. Chúng không giống hệt, nhưng cùng một cách chia nét. Chắc không phải ngẫu nhiên.'],
+  3:['Sau khi Rễ Cổ sáng lại, mực ở vài trang sổ cũ hiện đậm hơn. Chị chưa nói với ai ngoài em.','Nếu những cuốn sổ nhà chị thật sự chỉ để buôn bán, có lẽ chúng đã không ghi những tuyến đường chẳng còn tồn tại trên bản đồ làng.']
+ }},
+ bo:{arc:'Gia đình từng giữ các lối phụ/đường liên lạc; cậu chỉ biết những mẩu chuyện gia đình tưởng là chuyện thường.',cues:{
+  0:['Nhà em có một miếng gỗ cũ khắc dấu giống mấy tảng đá bên trái làng. Ông nội bảo đó chỉ là dấu thợ, nhưng lại không cho em đem đi chơi.','Em biết vài đường tắt vì hồi nhỏ ông nội bắt nhớ từng ngã rẽ. Lúc đó em cứ tưởng ông sợ em đi lạc thôi.'],
+  1:['Lạ lắm, mấy đường em được dạy nhớ không phải đường ngắn nhất. Chúng toàn vòng qua kho với mấy nền đá cũ.','Có lần em hỏi sao phải nhớ con đường chẳng ai đi, ông nội bảo “đường không dùng vẫn là đường”. Em chẳng hiểu gì cả.'],
+  2:['Hồi bé em từng thấy người lớn mở một hộp gỗ có cùng dấu song đôi. Họ đóng lại ngay khi thấy em đứng ở cửa.','Mấy bản vẽ em thích làm mô hình đôi lúc giống các nền đá ngoài làng. Chắc vì em nhìn chúng từ nhỏ nên nhớ hình thôi… chắc vậy.'],
+  3:['Khi Rễ Cổ sáng lên, ông nội em cứ đứng nhìn về phía rừng rất lâu. Ông không nói gì, nhưng em chưa từng thấy ông như thế.','Em bắt đầu nghĩ mấy “đường tắt” em được dạy không phải để đi chơi. Có khi chúng từng nối những nơi quan trọng hơn mình tưởng.']
+ }},
+ ranger:{arc:'Gia đình từng canh ranh giới và duy trì các mốc tuyến; anh biết quy tắc nhưng chưa biết toàn bộ lý do.',cues:{
+  0:['Mấy dấu khắc trên cây không phải tất cả đều do kiểm lâm đời này để lại. Có dấu cũ hơn cả con đường hiện tại.','Cha tôi dặn thấy cọc đá có hai nét thì đừng nhổ, kể cả khi nó chắn đường. Ông chưa từng giải thích lý do.'],
+  1:['Tuyến rừng phía đông từng được gọi là “tuyến canh”, không phải đường săn. Tôi nghe tên đó từ cha, còn ông nghe từ ông nội.','Có vài mốc nhìn chẳng hợp với cách đánh dấu đường bây giờ. Nhưng cứ mất một mốc là thú và người đều đổi hướng đi kỳ lạ.'],
+  2:['Tôi đã so dấu ở Rễ Cổ với dấu trên cây. Có cùng một quy luật khoảng cách. Nghĩa là ai đó từng xem cả khu rừng như một hệ thống, không phải từng điểm rời rạc.','Người nhà tôi truyền nhau cách kiểm tra các tuyến này, nhưng chẳng ai truyền lại mục đích ban đầu. Có lẽ phần đó đã bị bỏ cố ý.'],
+  3:['Sau khi Rễ Cổ sáng lại, vài cọc đánh dấu cũ bắt đầu phản ánh sáng theo thứ tự. Đây không phải hệ thống kiểm lâm thông thường.','Cha từng bảo nhiệm vụ của nhà tôi là “giữ đường còn nguyên cho người cần trở lại”. Tôi nghĩ giờ mình mới bắt đầu hiểu câu đó.']
+ }},
+ farmer1:{arc:'Gia đình hậu cần cũ; ruộng, kho và rãnh đá từng thuộc một mạng lưới vận chuyển lớn hơn.',cues:{
+  0:['Ông nội bác dặn có thể đổi luống, đổi hàng rào, nhưng rãnh đá thì không được lấp. Bác cứ làm theo thôi.','Mấy nền đá phía bắc nằm đúng chỗ rất vướng để làm ruộng. Lạ là đời nào nhà bác cũng né chúng thay vì phá đi.'],
+  1:['Kho phía trên trước kia lớn hơn nhiều. Người già trong nhà bác không gọi nó là kho — họ gọi là “trạm”.','Có những vết bánh xe cũ chạy về phía rừng chứ không về chợ. Với một làng nhỏ như Thanh Mộc thì hơi khó hiểu.'],
+  2:['Bác tìm được một bảng kê cũ chỉ ghi trọng lượng, số chuyến và ký hiệu hai nét. Không có tên hàng hóa.','Cha bác từng nói gia đình mình “chỉ lo phần đưa đi và mang về”. Hồi đó bác tưởng ông nói chuyện nông sản.'],
+  3:['Rễ Cổ sáng lại đúng đêm mấy rãnh đá ngoài ruộng rung nhẹ. Bác không nghĩ hai chuyện đó tách rời nữa.','Nếu cái “trạm” ngày xưa thật sự chỉ chứa lúa, chắc người ta đã chẳng xây nền dày hơn cả nhà ở.']
+ }},
+ granny1:{arc:'Người giữ truyền khẩu; nhớ các phiên bản câu chuyện trước khi lịch sử làng bị giản lược.',cues:{
+  0:['Có một bài đồng dao cũ của làng bị bỏ mất một câu. Lạ là người già ai cũng nhớ chỗ bị bỏ, nhưng chẳng ai chịu hát phần đó.','Gia phả cũ ghi rất kỹ tên người, nhưng nhiều đời lại để trống nghề nghiệp. Người ta hiếm khi quên cùng một thứ nhiều lần như vậy.'],
+  1:['Ngày trước trẻ con bị dặn không chơi ở Đường Tổ sau chiều muộn. Không ai bảo có ma cả — chỉ bảo “đừng làm lệch dấu”.','Bà từng nghe hai cách kể về cùng một người: một bản gọi họ là người bảo vệ, bản kia chỉ gọi là người canh cửa. Khác một chữ mà nghĩa khác xa.'],
+  2:['Bài đồng dao ấy có hai câu đầu là “người giữ tên, người giữ đường”. Phần sau bà vẫn nhớ, nhưng chưa phải lúc kể.','Có chuyện cũ bị rút ngắn qua mỗi thế hệ. Đôi khi không phải vì người ta quên, mà vì họ muốn con cháu chỉ nhớ phần dễ sống cùng.'],
+  3:['Khi Rễ Cổ sáng, bà nhớ ra vì sao người xưa kiêng hát trọn bài đồng dao. Nó không phải bài hát — nó là cách ghi thứ tự của một nghi thức.','Người làng từng thống nhất quên đi vài cái tên nghề. Có lẽ họ sợ nếu nghề còn tên, công việc ấy sẽ có ngày quay trở lại.']
+ }},
+ smith:{arc:'Dòng thợ rèn từng chế tạo khóa, khuôn và vật chứa cho hệ phong ấn; nghề hiện tại chỉ còn một phần truyền thống.',cues:{
+  0:['Trong lò còn vài khuôn cũ không vừa dao, cuốc hay bản lề nào. Người trước cứ truyền lại nên ta cũng giữ.','Có loại hợp kim trong làng chẳng ai dùng nữa. Nó cứng không bằng thép tốt, nhưng lại gần như không bị xỉn khi đặt cạnh mấy phiến đá cổ.'],
+  1:['Ta từng tháo một chiếc khóa cũ ở kho phía bắc. Cơ cấu của nó phức tạp hơn mức cần thiết cho một kho nông cụ.','Mấy chìa cũ của dòng thợ rèn có răng khóa chẳng khớp ổ nào trong làng hiện tại. Có lẽ ổ khóa đã mất trước chìa.'],
+  2:['Biểu tượng cổ ta giữ không phải đồ trang trí. Ít nhất, cách đúc của nó giống đồ dùng để lắp vào một cơ cấu hơn là đeo trên người.','Ta so khuôn cũ với vài mảnh kim loại từ rừng. Kích thước trùng quá sát để gọi là ngẫu nhiên.'],
+  3:['Ánh sáng ở Rễ Cổ làm một khuôn cũ trong lò nóng lên dù chưa nhóm than. Ta đã khóa nó lại trước khi người khác thấy.','Nếu dòng thợ rèn ngày trước chỉ làm nông cụ, họ đã không truyền riêng một bộ khuôn mà cấm dùng cho việc khác.']
+ }}
+});
+function blank(){return {version:V,introSeen:{},seen:{},maxStage:{}};}
+function ensure(st){
+ if(!st||typeof st!=='object')return blank();
+ if(!st.characterLore687||typeof st.characterLore687!=='object')st.characterLore687=blank();
+ const z=st.characterLore687;z.version=V;z.introSeen=z.introSeen&&typeof z.introSeen==='object'?z.introSeen:{};z.seen=z.seen&&typeof z.seen==='object'?z.seen:{};z.maxStage=z.maxStage&&typeof z.maxStage==='object'?z.maxStage:{};return z;
+}
+function stage(){
+ try{
+  if(S?.quests?.roots_heart?.status==='completed'||S?.progress683?.forestUpperUnlocked)return 3;
+  if(S?.quests?.story_final?.status==='completed'||['active','completed'].includes(S?.quests?.roots_path?.status)||['active','completed'].includes(S?.quests?.roots_memory?.status))return 2;
+  if(S?.gateOpen||S?.quests?.main_gate?.status==='completed'||S?.quests?.main_chest?.status==='completed')return 1;
+ }catch(_){}
+ return 0;
+}
+function questBusy(n){
+ try{
+  if(typeof npcQuestMarker==='function'&&npcQuestMarker(n))return true;
+  const id=typeof storyCurrent==='function'?storyCurrent():null,st=id&&typeof QM!=='undefined'?QM.status(id):null;
+  if(id&&(st==='active'||st==='available')){
+   if(typeof storyOwner==='function'&&storyOwner(id)===n.id)return true;
+   const a=typeof ADVENTURES!=='undefined'&&ADVENTURES.find(q=>q.id===id),p=a&&typeof adventureStep==='function'?adventureStep(a):null;
+   if(p?.npc===n.id)return true;
+   if(id==='story_final'&&n.id==='elder')return true;
+  }
+  if(n.id==='mai'&&['available','active'].includes(QM.status('side_berries')))return true;
+  if(n.id==='mai'&&['available','active'].includes(QM.status('side_shop_unlock')))return true;
+  if(n.id==='smith'&&QM.status('goddess_trade')==='active'&&!S?.v320?.smithEmblemGiven)return true;
+ }catch(_){}
+ return false;
+}
+function markIntro(id){const z=ensure(S);if(z.introSeen[id])return false;z.introSeen[id]=true;try{save();}catch(_){}return true;}
+function clueTalk(n){
+ const p=PROFILES[n.id];if(!p)return false;const z=ensure(S),s=stage(),key=n.id+':'+s,lines=p.cues[s]||[];
+ z.maxStage[n.id]=Math.max(Number(z.maxStage[n.id])||0,s);
+ const i=Number(z.seen[key])||0;if(i>=lines.length)return false;
+ z.seen[key]=i+1;try{save();}catch(_){}
+ return say(n.name,[lines[i]],null,n.id),true;
+}
+/* Preserve every existing quest/turn-in handler. The first casual conversation also stays original,
+   so the player meets a person before receiving foreshadowing about their family history. */
+if(typeof talk==='function'){
+ const prev=talk;
+ talk=function(n){
+  if(!MANAGED.has(n?.id)||questBusy(n))return prev.apply(this,arguments);
+  if(markIntro(n.id))return prev.apply(this,arguments);
+  if(clueTalk(n))return;
+  return prev.apply(this,arguments);
+ };
+}
+/* Persist only dialogue exposure. These fields never complete quests or grant items. */
+if(typeof newState==='function'){
+ const prev=newState;newState=function(){const out=prev.apply(this,arguments);ensure(out);return out;};
+}
+if(typeof normalizeState==='function'){
+ const prev=normalizeState;normalizeState=function(raw){const out=prev.apply(this,arguments),z=raw?.characterLore687;
+  ensure(out);if(z&&typeof z==='object'){
+   const dst=out.characterLore687;for(const [k,v]of Object.entries(z.introSeen||{}))if(MANAGED.has(k))dst.introSeen[k]=!!v;
+   for(const [k,v]of Object.entries(z.seen||{}))if(/^(elder|mai|bo|ranger|farmer1|granny1|smith):[0-3]$/.test(k))dst.seen[k]=Math.max(0,Math.min(8,Number(v)||0));
+   for(const [k,v]of Object.entries(z.maxStage||{}))if(MANAGED.has(k))dst.maxStage[k]=Math.max(0,Math.min(3,Number(v)||0));
+  }return out;};
+}
+if(typeof captureState==='function'){
+ const prev=captureState;captureState=function(){ensure(S);const out=prev.apply(this,arguments);ensure(out);if(out?.villageExpansion684)out.villageExpansion684={...out.villageExpansion684,phase:4,version:V};return out;};
+}
+window.VILLAGE_CHARACTERS687={phase:4,version:V,profiles:PROFILES,get stage(){return stage();},get state(){return {...ensure(S),seen:{...ensure(S).seen},introSeen:{...ensure(S).introSeen},maxStage:{...ensure(S).maxStage}};}};
+function version687(){
+ try{CFG.version=V;}catch(_){}try{if(typeof HTCT!=='undefined')HTCT.version=V;}catch(_){}try{if(S?.v320)S.v320.patchVersion=V;}catch(_){}
+ document.title='Hành Trình Cổ Thư — v'+V;document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+V);const e=document.querySelector('#devHeader678 b');if(e)e.textContent='Developer Toolbox · v'+V;
+}
+ensure(S);version687();requestAnimationFrame(version687);
+})();
+</script>
+
+
+
+<!-- ============================================================
+     HÀNH TRÌNH CỔ THƯ v6.88.0 — Làng Thanh Mộc Expansion · Phase 5
+     Lore side quests only. No combat / hurt / attack-box changes.
+     ============================================================ -->
+<script id="v688-village-expansion-phase5">
+(()=>{'use strict';
+const V='6.88.0',HOME='home';
+const home=()=>!S?.realm640||S.realm640===HOME;
+const IDS=['v688_inventory','v688_lock','v688_twinmarks','v688_oldroad','v688_verse','v688_markers'];
+const DEF=[
+ {id:'v688_inventory',owner:'farmer1',title:'Bảng kê không ghi tên',coins:14,description:'Kiểm tra những dấu cũ quanh khu kho và ruộng phía trên để hiểu vì sao bảng kê xưa chỉ ghi trọng lượng, số chuyến và ký hiệu.',offer:['Bác tìm thấy một mảnh bảng kê cũ trong kho. Không có tên hàng, chỉ có trọng lượng với dấu hai nét.','Nếu tiện, cháu xem giúp vài dấu cũ quanh khu phía trên có giống nhau không. Đừng phá hay đào gì cả, chỉ cần quan sát.'],hint:'Kiểm tra lần lượt dấu trên lô hàng cũ, rãnh đá giữa khu canh tác và mốc đo gần kho phía bắc.',returnLine:['Đúng là cùng một dấu. Bảng kê nhà bác cũng không hề ghi tên thứ được chở.','Nếu đây chỉ là nông sản, người xưa chẳng có lý do gì phải ghi chép vòng vo đến vậy. Cứ giữ chuyện này giữa chúng ta đã.'],objectives:[
+  {id:'seal',text:'Kiểm tra dấu kiểm kê trên lô hàng cũ',site:'inv_seal'},
+  {id:'channel',text:'Đối chiếu rãnh đá giữa khu canh tác',site:'inv_channel'},
+  {id:'survey',text:'Xem mốc đo cũ cạnh kho phía bắc',site:'inv_survey'},
+  {id:'return',text:'Mang ghi chép về cho người giao nhiệm vụ',return:true}
+ ]},
+ {id:'v688_lock',owner:'smith',title:'Chiếc khóa không còn ổ',coins:16,description:'Một mảnh kim loại cũ gần kho có hình dáng giống đồ nghề của dòng thợ rèn, nhưng không khớp với bất kỳ ổ khóa hiện tại nào.',offer:['Ta nghe chuyện dấu kiểm kê ở kho rồi. Có một việc khác đáng thử.','Gần kho nhỏ từng có người nhặt được mảnh kim loại có răng cắt rất lạ. Nếu còn ở đó, đem hình dạng của nó đối chiếu với mốc đá cũ phía bắc.'],hint:'Tìm mảnh kim loại gần kho nhỏ, sau đó so với phiến đá cũ ở rìa ruộng phía bắc.',returnLine:['Đúng như ta nghĩ: đây không phải chìa khóa hoàn chỉnh. Nó giống một lưỡi thử hoặc khuôn căn hơn.','Khe trên phiến đá lại vừa đúng phần răng này. Dòng thợ rèn giữ khuôn, còn ổ khóa thật có lẽ đã biến mất từ lâu.'],objectives:[
+  {id:'metal',text:'Tìm mảnh kim loại gần kho nhỏ',site:'lock_metal'},
+  {id:'fit',text:'So hình dạng với phiến đá cũ phía bắc',site:'lock_fit'},
+  {id:'return',text:'Mang kết quả về cho người giao nhiệm vụ',return:true}
+ ]},
+ {id:'v688_twinmarks',owner:'mai',title:'Hai nét giống nhau',coins:18,description:'So lại ba dấu song đôi ở khu hậu cần để xác định chúng là ký hiệu kho hàng hay thuộc về một hệ thống cũ lớn hơn.',offer:['Em nghe mọi người nói về dấu hai nét nên nhớ tới một bản chép cũ trong nhà.','Chị muốn sao lại ba dấu ở khu phía trên: một dấu trên hàng hóa, một trên mốc đá và một đường khắc chìm. Nếu nét đặt giống nhau thì chắc không phải trùng hợp.'],hint:'Sao lại ba dấu song đôi ở kho nhỏ, mốc đá phía tây khu ruộng và đường khắc chìm gần lối vận chuyển.',returnLine:['Ba bản sao đặt chồng lên nhau gần như khớp hoàn toàn. Đây không giống dấu riêng của một kho hàng.','Trong sổ nhà chị, ký hiệu này nằm cạnh những dòng bị bỏ trống. Chị sẽ chưa ghi thêm kết luận nào cho đến khi có bằng chứng rõ hơn.'],objectives:[
+  {id:'cargo',text:'Sao lại dấu trên hàng hóa cũ',site:'twin_cargo'},
+  {id:'marker',text:'Sao lại dấu trên mốc đá',site:'twin_marker'},
+  {id:'line',text:'Sao lại đường khắc chìm',site:'twin_line'},
+  {id:'return',text:'Mang ba bản sao về cho người giao nhiệm vụ',return:true}
+ ]},
+ {id:'v688_oldroad',owner:'bo',title:'Đường không dùng vẫn là đường',coins:18,description:'Lần theo một tuyến đường cũ ở khu phía trái mà các thế hệ trước vẫn bắt con cháu ghi nhớ dù không còn sử dụng.',offer:['Em từng kể là ông nội bắt nhớ những con đường chẳng ai đi. Có một tuyến bắt đầu ngay phía trái làng.','Mình thử đi theo ba dấu em còn nhớ nhé. Nếu chúng thật sự nối với nhau thì câu “đường không dùng vẫn là đường” chắc không chỉ để dọa trẻ con.'],hint:'Theo dấu từ phiến đá bên Đường Tổ, qua lối nghi lễ cũ rồi tới nền móng gần rìa làng.',returnLine:['Ba điểm đúng là nằm trên một tuyến. Kỳ lạ nhất là nó cố tình tránh quảng trường và đường chính.','Ông nội không dạy em đường tắt. Ông dạy một tuyến để đi mà ít người nhìn thấy. Nhưng tuyến đó dùng để làm gì thì em chưa biết.'],objectives:[
+  {id:'slab',text:'Tìm dấu mở đầu trên Đường Tổ',site:'road_slab'},
+  {id:'procession',text:'Theo dấu qua lối nghi lễ cũ',site:'road_procession'},
+  {id:'foundation',text:'Kiểm tra nền móng ở cuối tuyến',site:'road_foundation'},
+  {id:'return',text:'Trở về đối chiếu tuyến đường',return:true}
+ ]},
+ {id:'v688_verse',owner:'granny1',title:'Câu hát bị bỏ quên',coins:22,description:'Những dấu trên bia mộ và nền tưởng niệm có thể là cách người xưa ghi lại thứ tự của một câu hát đã bị bỏ khỏi truyền khẩu.',offer:['Cháu đã đi Đường Tổ rồi thì giúp bà nhìn ba dấu ở khu mộ cũ.','Đừng đọc tên người. Hãy để ý vị trí của vạch đá và dấu song đôi. Bà muốn biết chúng có đi theo nhịp của bài đồng dao cũ không.'],hint:'Quan sát hai dấu mộ ở khu sâu rồi quay lại nền khảm song đôi tại khu tưởng niệm.',returnLine:['Đúng nhịp rồi. Bà có thể chắc ít nhất hai câu đầu chưa bị nhớ sai.','“Người giữ tên, người giữ đường. Dấu đôi còn, lối chưa tàn.” Phần sau bà vẫn chưa muốn nói khi chưa biết vì sao người xưa cố bỏ nó khỏi bài hát.'],objectives:[
+  {id:'graveA',text:'Quan sát dấu mộ phía tây',site:'verse_grave_a'},
+  {id:'graveB',text:'Quan sát dấu mộ phía đông',site:'verse_grave_b'},
+  {id:'mosaic',text:'Đối chiếu với nền khảm song đôi',site:'verse_mosaic'},
+  {id:'return',text:'Trở về nghe lại phần câu hát còn nhớ',return:true}
+ ]},
+ {id:'v688_markers',owner:'ranger',title:'Những mốc không được nhổ',coins:26,description:'Đối chiếu các mốc canh ở khu tổ với một mốc nằm giữa khu sản xuất để xem chúng có thuộc cùng một hệ thống định tuyến hay không.',offer:['Tôi muốn kiểm tra một điều trước khi coi những dấu này chỉ là chuyện của làng.','Hãy xem ba mốc: cột gãy ở Đường Tổ, mốc sâu trong rừng tổ và một phiến đá giữa khu ruộng phía bắc. Chỉ cần ghi hướng và khoảng cách tương đối.'],hint:'Kiểm tra cột gãy ở phía trái, mốc sâu gần mép rừng tổ, rồi đối chiếu với phiến đá cũ ở khu sản xuất phía trên.',returnLine:['Khoảng cách không ngẫu nhiên. Ba mốc dùng cùng một quy luật đặt tuyến mà tôi từng thấy trong rừng.','Nghĩa là làng, khu tổ và tuyến rừng từng được xem như một hệ thống duy nhất. Tôi chưa biết hệ thống đó giữ thứ gì — nhưng nó lớn hơn ranh giới làng hiện tại.'],objectives:[
+  {id:'west',text:'Ghi hướng cột gãy ở Đường Tổ',site:'marker_west'},
+  {id:'deep',text:'Ghi hướng mốc sâu trong Rừng Tổ',site:'marker_deep'},
+  {id:'north',text:'Đối chiếu phiến đá ở khu phía trên',site:'marker_north'},
+  {id:'return',text:'Mang sơ đồ mốc về cho người giao nhiệm vụ',return:true}
+ ]}
+];
+const SITES={
+ inv_seal:{x:26.3,y:-12.1,icon:'seal',label:'Dấu kiểm kê cũ',lines:['Dấu song đôi được đóng ở góc. Bên cạnh chỉ có trọng lượng và số chuyến; không thấy tên hàng hóa.']},
+ inv_channel:{x:15.4,y:-12.1,icon:'seal',label:'Rãnh đá cũ',lines:['Rãnh đá không dẫn nước về ruộng. Nó chạy thẳng qua khu canh tác rồi mất dưới nền đường vận chuyển.']},
+ inv_survey:{x:31.0,y:-10.6,icon:'seal',label:'Mốc đo cũ',lines:['Mốc đo dùng cùng dấu song đôi. Các vạch ngắn bên cạnh trông giống ghi khoảng cách hơn là ký hiệu ruộng đất.']},
+ lock_metal:{x:27.6,y:-5.0,icon:'key',label:'Mảnh kim loại cũ',lines:['Một mảnh kim loại dẹt nằm kẹt sát nền kho. Phần răng được cắt quá chính xác để là mảnh nông cụ vỡ.']},
+ lock_fit:{x:19.1,y:-14.7,icon:'seal',label:'Khe trên phiến đá',lines:['Trên cạnh phiến đá có một khe vuông nhỏ. Hình răng của mảnh kim loại vừa với khe một cách đáng ngờ.']},
+ twin_cargo:{x:30.0,y:-5.0,icon:'scroll',label:'Sao dấu hàng hóa',lines:['Bạn ép giấy lên dấu cũ. Hai nét đứng và phần gạch lệch hiện rõ trên bản sao.']},
+ twin_marker:{x:6.0,y:-15.0,icon:'scroll',label:'Sao dấu mốc đá',lines:['Dấu trên mốc đá có cùng tỷ lệ với dấu hàng hóa, kể cả một vết khuyết nhỏ ở nét bên phải.']},
+ twin_line:{x:19.0,y:-11.0,icon:'scroll',label:'Sao đường khắc chìm',lines:['Đường khắc chìm tạo thành đúng cấu trúc hai nét. Nó nằm dưới đất lâu hơn nhiều so với các thùng hàng hiện tại.']},
+ road_slab:{x:-9.0,y:16.5,icon:'seal',label:'Phiến đá bên Đường Tổ',lines:['Một vết chỉ hướng rất mờ nằm ở mép phiến đá, quay về phía sâu trong khu tổ chứ không hướng về quảng trường.']},
+ road_procession:{x:-15.0,y:11.2,icon:'seal',label:'Dấu trên lối nghi lễ',lines:['Dấu tiếp theo nằm đúng trên đường nghi lễ cũ. Khoảng cách tới dấu trước gần như bằng số bước đã được truyền miệng.']},
+ road_foundation:{x:-7.0,y:9.2,icon:'seal',label:'Nền móng cuối tuyến',lines:['Nền móng có một dấu kết thúc nằm ở mặt khuất. Tuyến đường này rõ ràng được bố trí để tránh khu trung tâm làng.']},
+ verse_grave_a:{x:-17.0,y:23.2,icon:'scroll',label:'Dấu mộ phía tây',lines:['Không có tên rõ ràng, chỉ còn hai vạch và một rãnh ngắn. Nhịp sắp xếp giống một dấu ngắt câu.']},
+ verse_grave_b:{x:-11.0,y:26.1,icon:'scroll',label:'Dấu mộ phía đông',lines:['Dấu trên bia thứ hai lặp lại cấu trúc nhưng đảo vị trí rãnh ngắn, như thể đánh dấu câu tiếp theo.']},
+ verse_mosaic:{x:-13.0,y:12.2,icon:'story',label:'Nền khảm song đôi',lines:['Khi so vị trí các rãnh với nền khảm, thứ tự của chúng tạo thành một nhịp đều: hai – một – hai – một.']},
+ marker_west:{x:-18.0,y:15.7,icon:'seal',label:'Cột gãy Đường Tổ',lines:['Mặt cột quay chếch về đông bắc. Một rãnh định hướng vẫn còn ở chân cột.']},
+ marker_deep:{x:-18.2,y:31.0,icon:'seal',label:'Mốc sâu Rừng Tổ',lines:['Mốc sâu quay về cùng trục nhưng cách xa hơn đúng một bội số đều. Có vẻ người đặt mốc đã dùng một khoảng chuẩn.']},
+ marker_north:{x:19.1,y:-14.8,icon:'seal',label:'Phiến đá khu sản xuất',lines:['Phiến đá phía bắc dùng đúng khoảng chuẩn ấy. Ba mốc ở hai khu khác nhau vẫn nằm trong cùng một quy luật.']}
+};
+const qmap=new Map(DEF.map(q=>[q.id,q])),siteToStep=new Map();
+for(const q of DEF)for(const o of q.objectives||[])if(o.site)siteToStep.set(o.site,{q,o});
+function questDef(q){return {id:q.id,type:'side',title:q.title,description:q.description,autoStart:false,objectives:q.objectives.map(o=>({id:o.id,type:o.return?'talk':'explore',text:o.text,required:1})),rewards:{coins:q.coins},unlocks:[]};}
+function installDefs(){for(const q of DEF)if(!QUEST_DEFS.some(x=>x.id===q.id))QUEST_DEFS.push(questDef(q));}
+function ensureQuest(id){const q=qmap.get(id);if(!q)return null;if(!S.quests)S.quests={};if(!S.quests[id]){const objectives={};for(const o of q.objectives)objectives[o.id]=0;S.quests[id]={status:'locked',objectives};}else{S.quests[id].objectives=S.quests[id].objectives||{};for(const o of q.objectives)if(S.quests[id].objectives[o.id]==null)S.quests[id].objectives[o.id]=0;}return S.quests[id];}
+function done(id){return QM.status(id)==='completed';}
+function unlockCondition(id){
+ if(id==='v688_inventory')return done('main_scrolls')||done('main_gate')||done('main_chest')||done('story_final')||Number(S.quest)>=3;
+ if(id==='v688_lock')return done('v688_inventory');
+ if(id==='v688_twinmarks')return done('v688_lock');
+ if(id==='v688_oldroad')return done('v688_twinmarks')&&(!!S.gateOpen||done('main_gate')||done('main_chest'));
+ if(id==='v688_verse')return done('v688_oldroad');
+ if(id==='v688_markers')return done('v688_verse')&&(done('story_final')||QM.status('roots_path')!=='locked'||!!S?.progress683?.forestUpperUnlocked);
+ return false;
+}
+function reconcile(){installDefs();for(const id of IDS){const st=ensureQuest(id);if(st.status==='locked'&&unlockCondition(id))st.status='available';}}
+function currentSite(q){const st=S.quests?.[q.id];if(st?.status!=='active')return null;for(const o of q.objectives){if(o.return)break;if((st.objectives?.[o.id]||0)<1)return o.site;}return null;}
+function readyReturn(q){const st=S.quests?.[q.id];return st?.status==='active'&&q.objectives.filter(o=>!o.return).every(o=>(st.objectives?.[o.id]||0)>=1)&&(st.objectives?.return||0)<1;}
+function startQuest(q){reconcile();const st=ensureQuest(q.id);if(st.status!=='available')return false;st.status='active';try{S.trackedQuest626=q.id;}catch(_){};try{toast('Nhiệm vụ mới: '+q.title);Snd.sfx('quest');questHudEffect?.('receive');hud();save();}catch(_){}return true;}
+function finishQuest(q){const st=ensureQuest(q.id);if(!readyReturn(q))return false;st.objectives.return=1;st.status='completed';S.coins=(S.coins||0)+(q.coins||0);try{if(typeof addXp6453==='function')addXp6453(Math.max(60,Math.round(60+(S.level||1)*5)),q.title);}catch(_){}S.loreNotes688=S.loreNotes688||{};S.loreNotes688[q.id]=true;reconcile();try{toast('Hoàn thành: '+q.title+' · +'+q.coins+' Lam thạch');Snd.sfx('quest');questHudEffect?.('complete');hud();save();}catch(_){}return true;}
+function inspect(siteId){const pair=siteToStep.get(siteId),site=SITES[siteId];if(!pair||!site)return;const {q,o}=pair,st=ensureQuest(q.id);if(st.status!=='active'||currentSite(q)!==siteId)return;return say(site.label,site.lines,()=>{st.objectives[o.id]=1;try{Snd.sfx('pick');hud();save();}catch(_){}const next=currentSite(q);if(next){const n=SITES[next];try{toast('Manh mối tiếp theo: '+(n?.label||'tiếp tục quan sát'));}catch(_){}}else{try{toast('Đã đủ manh mối · quay lại báo cáo.');hud();}catch(_){}}});}
+function ownerQuest(n){return DEF.find(q=>q.owner===n?.id&&['available','active'].includes(QM.status(q.id)))||null;}
+const markerBefore=typeof npcQuestMarker==='function'?npcQuestMarker:null;
+function coreMarker(n){try{return markerBefore?markerBefore(n):null;}catch(_){return null;}}
+if(typeof npcQuestMarker==='function')npcQuestMarker=function(n){const old=coreMarker(n);if(old)return old;const q=ownerQuest(n);if(!q)return null;if(QM.status(q.id)==='available')return '!';if(readyReturn(q))return '?';return null;};
+if(typeof talk==='function'){
+ const prev=talk;
+ talk=function(n){
+   if(!n||coreMarker(n))return prev.apply(this,arguments);
+   const q=ownerQuest(n);if(!q)return prev.apply(this,arguments);
+   if(QM.status(q.id)==='available')return say(n.name,q.offer,()=>startQuest(q),n.id);
+   if(readyReturn(q))return say(n.name,q.returnLine,()=>finishQuest(q),n.id);
+   const sid=currentSite(q),site=sid&&SITES[sid];if(site)return say(n.name,[q.hint,'Điểm cần kiểm tra tiếp theo: '+site.label+'.'],null,n.id);
+   return prev.apply(this,arguments);
+ };
+}
+if(typeof interactables==='function'){
+ const prev=interactables;
+ interactables=function(){const list=prev.apply(this,arguments);if(!home())return list;for(const q of DEF){const sid=currentSite(q),s=sid&&SITES[sid];if(s)list.push({kind:'loreSite688',ref:sid,x:s.x,y:s.y,reach:1.12,label:s.label,btn:'Xem'});}return list;};
+}
+if(typeof interactionHint==='function'){
+ const prev=interactionHint;interactionHint=function(o){if(o?.kind==='loreSite688')return o.label||SITES[o.ref]?.label||'Kiểm tra dấu vết';return prev.apply(this,arguments);};
+}
+if(typeof interact==='function'){
+ const prev=interact;interact=function(o){if(o?.kind==='loreSite688')return inspect(o.ref);return prev.apply(this,arguments);};
+}
+if(typeof drawWorld==='function'){
+ const prev=drawWorld;drawWorld=function(t){const r=prev.apply(this,arguments);if(!home())return r;const [cx,cy]=cam();for(const q of DEF){const sid=currentSite(q),s=sid&&SITES[sid];if(!s||Math.hypot(P.x-s.x,P.y-s.y)>16)continue;const x=s.x*TS-cx,y=s.y*TS-cy;try{drawQuestItemAura(x,y,t,(s.x+s.y)*.31,'232,209,139');drawIcon(s.icon||'seal',x,y-TS*.18+Math.sin(t*2.4+s.x)*TS*.035,TS*.48);}catch(_){}}return r;};
+}
+/* Older story reconciliation knows only the original side quests. Re-apply Phase-5 availability afterwards. */
+if(typeof QM.ensure==='function'){const prev=QM.ensure.bind(QM);QM.ensure=function(){const r=prev.apply(this,arguments);reconcile();return r;};}
+if(typeof storyReconcile==='function'){const prev=storyReconcile;storyReconcile=function(){const r=prev.apply(this,arguments);reconcile();return r;};}
+if(typeof captureState==='function'){
+ const prev=captureState;captureState=function(){reconcile();const out=prev.apply(this,arguments);if(out){out.loreNotes688={...(S.loreNotes688||{})};if(out.villageExpansion684)out.villageExpansion684={...out.villageExpansion684,phase:5,version:V};}return out;};
+}
+if(typeof normalizeState==='function'){
+ const prev=normalizeState;normalizeState=function(raw){const out=prev.apply(this,arguments);if(raw?.loreNotes688)out.loreNotes688={...raw.loreNotes688};return out;};
+}
+if(typeof restoreSession==='function'){
+ const prev=restoreSession;restoreSession=function(){const r=prev.apply(this,arguments);reconcile();version688();return r;};
+}
+function version688(){try{CFG.version=V;}catch(_){}try{if(typeof HTCT!=='undefined')HTCT.version=V;}catch(_){}try{if(S?.v320)S.v320.patchVersion=V;}catch(_){}document.title='Hành Trình Cổ Thư — v'+V;document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+V);const e=document.querySelector('#devHeader678 b');if(e)e.textContent='Developer Toolbox · v'+V;}
+installDefs();reconcile();window.VILLAGE_LORE688={phase:5,version:V,quests:DEF,sites:SITES,reconcile,start:startQuest,finish:finishQuest,currentSite};version688();requestAnimationFrame(()=>{reconcile();version688();});
+})();
+
+</script>
+
+
+<!-- ============================================================
+     HÀNH TRÌNH CỔ THƯ v6.89.0 — Làng Thanh Mộc Expansion · Phase 6
+     Rễ Cổ world reactions / village linkage. No combat hurt/attack-box changes.
+     ============================================================ -->
+<script id="v689-village-expansion-phase6">
+(()=>{'use strict';
+const V='6.89.0',HOME='home';
+const CORE_IDS=['elder','mai','bo','ranger','farmer1','granny1','smith'];
+const home=()=>!S?.realm640||S.realm640===HOME;
+function rootsStatus(id){try{return S?.quests?.[id]?.status||'locked';}catch(_){return'locked';}}
+function stage(){
+ if(rootsStatus('roots_heart')==='completed'||S?.progress683?.forestUpperUnlocked)return 3;
+ if(['active','completed'].includes(rootsStatus('roots_memory'))||rootsStatus('roots_heart')==='active')return 2;
+ if(['active','completed'].includes(rootsStatus('roots_path')))return 1;
+ return 0;
+}
+function blank(){return{version:V,lastStage:0,announced:{},npcSeen:{},resonanceSeen:{},oldPanelOpened:false,archiveNote:false};}
+function ensure(st=S){
+ if(!st||typeof st!=='object')return blank();
+ if(!st.villageReaction689||typeof st.villageReaction689!=='object')st.villageReaction689=blank();
+ const z=st.villageReaction689;z.version=V;
+ z.lastStage=Math.max(0,Math.min(3,Number(z.lastStage)||0));
+ z.announced=z.announced&&typeof z.announced==='object'?z.announced:{};
+ z.npcSeen=z.npcSeen&&typeof z.npcSeen==='object'?z.npcSeen:{};
+ z.resonanceSeen=z.resonanceSeen&&typeof z.resonanceSeen==='object'?z.resonanceSeen:{};
+ z.oldPanelOpened=!!z.oldPanelOpened;z.archiveNote=!!z.archiveNote;
+ return z;
+}
+const REACTIONS={
+ elder:{
+  1:['Con vừa chạm tới tuyến Rễ Cổ phải không? Mấy mốc đá quanh làng đã rung rất nhẹ từ lúc đó.','Đừng vội coi đó là điềm lành hay dữ. Trước hết hãy nhớ: một hệ thống chỉ phản ứng khi các phần của nó vẫn còn nối với nhau.'],
+  2:['Nhịp từ Rễ Cổ đã rõ hơn. Ta nghe thấy nó ở cả phiến đá phía tây lẫn rãnh đá trên khu ruộng.','Nếu làng và Rễ Cổ cùng đáp lại một nhịp, vậy ranh giới trên bản đồ hiện tại có lẽ không phải ranh giới người xưa từng dùng.'],
+  3:['Rễ Cổ đã sáng lại, và cả làng cũng vừa trả lời nó. Đây không chỉ là chuyện xảy ra trong rừng nữa.','Ta vẫn chưa muốn kể con một kết luận có sẵn. Hãy nhìn xem những gì trong làng vừa thức dậy trước đã.']},
+ mai:{
+  1:['Từ lúc em đi về phía Rễ Cổ, vài nét mực cũ trong sổ quầy đậm lên rồi nhạt lại. Chị đã thử đổi giấy, đổi ánh sáng — không phải do mắt.','Kỳ lạ nhất là những trang phản ứng đều có dấu song đôi.'],
+  2:['Những tuyến không còn trên bản đồ đang hiện thành vệt rất mờ trong sổ cũ. Có một tuyến từ kho phía bắc chạy thẳng về phía rừng.','Chị chưa dám chép lại bằng mực mới. Nếu đây là bản ghi đường thật, sửa một nét cũng có thể làm mất thứ người trước cố giữ.'],
+  3:['Sau khi Rễ Cổ sáng, một trang bị dính kín đã tự tách ra. Bên dưới không có tên hàng, chỉ có các mốc tuyến giống hệt những gì mình vừa tìm.','Chị bắt đầu tin những cuốn sổ nhà mình từng ghi nhiều thứ hơn chuyện mua bán.']},
+ bo:{
+  1:['Mấy đường ông nội bắt em nhớ tự nhiên có ý nghĩa hơn rồi. Một tuyến vòng từ làng sang phía trái rồi mới hướng về rừng, cứ như cố tránh đường chính.','Em vẫn chưa biết người xưa cần tránh ai — hay cần giấu thứ gì.'],
+  2:['Em thử đặt các mốc mình tìm được lên bản vẽ. Chúng không tạo đường ngắn nhất, nhưng lại nối được kho, khu tổ và tuyến Rễ Cổ.','Nếu đây là đường liên lạc thì nó được thiết kế để người biết dấu đi được, còn người lạ nhìn vào chỉ thấy đường vòng.'],
+  3:['Khi Rễ Cổ sáng, miếng gỗ cũ nhà em rung lên đúng ba lần. Ông nội nghe thấy nhưng chỉ bảo em cất lại.','Em nghĩ ông biết nhiều hơn những gì đã dạy em, nhưng có lẽ ông đang chờ em tự hiểu vì sao những con đường ấy phải còn nguyên.']},
+ ranger:{
+  1:['Các mốc canh trong rừng đổi hướng phản sáng khi cậu tới Rễ Cổ. Không phải tất cả, chỉ những mốc cùng loại với mốc ở làng.','Tôi sẽ chưa nhổ hay dựng lại bất cứ cọc nào. Nếu chúng là một chuỗi, thay vị trí một cái có thể làm sai cả tuyến.'],
+  2:['Giờ thì chắc rồi: khoảng cách giữa mốc làng và mốc trong rừng dùng cùng một chuẩn. Rễ Cổ chỉ là điểm sâu nhất tôi đo được, chưa chắc là điểm cuối.','Người nhà tôi giữ tuyến này qua nhiều đời mà không biết vì sao. Có lẽ mục đích của nó vừa bắt đầu quay trở lại.'],
+  3:['Sau khi Rễ Cổ sáng, các cọc cũ phản sáng từ sâu trong rừng về phía làng theo đúng thứ tự. Không có cọc nào hướng ngược lại.','Nghĩa là hệ thống này từng dẫn thứ gì đó về làng — hoặc dẫn người trong làng tới nơi cần canh giữ.']},
+ farmer1:{
+  1:['Rãnh đá ngoài ruộng rung một cái rất nhẹ đúng hôm cháu đi vào tuyến Rễ Cổ. Bác tưởng xe hàng chạy qua, nhưng hôm đó chẳng có chuyến nào.','Bác đang để nguyên mọi thứ như cũ. Nếu người trước dặn không lấp rãnh, giờ chắc có lý do rồi.'],
+  2:['Nước trong rãnh không chảy nhanh hơn, nhưng mặt đá lại ấm lên từng nhịp. Cùng lúc đó mốc gần kho cũng rung.','Ruộng với kho có vẻ chỉ được xây chồng lên một thứ đã có trước. Bác bắt đầu thấy cách gọi “trạm” ngày xưa không phải nói quá.'],
+  3:['Đêm Rễ Cổ sáng lại, ba rãnh đá phía bắc đồng loạt phát một đường sáng rất mờ rồi tắt.','Nó chạy về kho cũ, không chạy ra đồng. Từ giờ bác sẽ không cho ai tự ý đào sâu quanh nền kho nữa.']},
+ granny1:{
+  1:['Bà nghe tiếng ngân đó rồi. Trong bài cũ có một chỗ phải ngừng hát đúng bằng khoảng giữa hai nhịp như vậy.','Người ta bỏ câu hát đi, nhưng vẫn giữ nhịp. Có lẽ vì nhịp mới là thứ cần nhớ.'],
+  2:['Bà đã nhớ thêm một đoạn, nhưng chưa kể đâu. Những câu ấy không phải chuyện để hát cho vui; chúng sắp thứ tự tên, đường và lửa.','Con cứ tiếp tục nhìn những gì tự phản ứng trước. Khi đủ dấu, câu hát sẽ không cần bà giải thích nữa.'],
+  3:['Rễ Cổ sáng lại đúng nhịp cuối của đoạn bà nhớ. Vậy bài đồng dao quả thật là một cách lưu thứ tự, không chỉ là truyện truyền miệng.','Nhưng thứ tự để làm gì thì vẫn còn một phần bị cố tình bỏ trống. Đó mới là chỗ đáng lo.']},
+ smith:{
+  1:['Một khuôn cũ trong lò vừa kêu nhẹ dù than đã tắt. Thời điểm trùng lúc cậu đi vào tuyến Rễ Cổ.','Ta đã cất riêng nó. Nếu kim loại cũng phản ứng với các mốc đá thì bộ khuôn này chưa bao giờ chỉ để làm khóa kho.'],
+  2:['Mảnh khuôn nóng lên theo từng nhịp, rồi nguội ngay. Ta thử đặt cạnh chìa cũ — răng khóa tự khớp vào rãnh mà trước đây ta tưởng bị mẻ.','Cơ cấu này chỉ hoàn chỉnh khi có tín hiệu từ bên ngoài. Người xưa thiết kế nó để không thể mở bằng sức.'],
+  3:['Sau khi Rễ Cổ sáng, chiếc chốt cũ ở kho phía bắc tự nhả. Ta không hề tra chìa vào đó.','Nếu muốn kiểm tra, hãy tới mặt trước kho nhỏ. Nhưng chỉ nhìn và ghi nhớ; đừng tháo cơ cấu ra khỏi vị trí.']}
+};
+function busy(n){
+ try{if(typeof npcQuestMarker==='function'&&npcQuestMarker(n))return true;}catch(_){}
+ try{const q=window.VILLAGE_LORE688?.quests?.find?.(x=>x.owner===n?.id&&['available','active'].includes(QM.status(x.id)));if(q)return true;}catch(_){}
+ return false;
+}
+function reaction(n){
+ const s=stage();if(s<=0||!CORE_IDS.includes(n?.id)||busy(n))return null;
+ const z=ensure(),key=n.id+':'+s;if(z.npcSeen[key])return null;
+ const lines=REACTIONS[n.id]?.[s];if(!lines)return null;return{z,key,lines};
+}
+if(typeof talk==='function'){
+ const prev=talk;talk=function(n){const r=reaction(n);if(!r)return prev.apply(this,arguments);return say(n.name,r.lines,()=>{r.z.npcSeen[r.key]=true;try{save();}catch(_){}},n.id);};
+}
+const POINTS={
+ north:{x:19.1,y:-14.8,label:'Mốc đá phía bắc',min:1,lines:{1:['Phiến đá rung rất nhẹ. Dấu song đôi trên mặt đá phản sáng theo một nhịp vọng từ xa.'],2:['Nhịp sáng đã đều hơn. Một rãnh nhỏ chạy từ chân mốc về phía đường kho, như thể mốc này từng truyền tín hiệu chứ không chỉ đánh dấu vị trí.'],3:['Ánh sáng chạy hết rãnh rồi hướng về kho nhỏ. Rễ Cổ đã đánh thức một đường dẫn cũ ngay dưới khu sản xuất.']}},
+ west:{x:-12.5,y:12.2,label:'Nền khảm khu tưởng niệm',min:2,lines:{2:['Hai nét trên nền khảm sáng luân phiên, cùng khoảng nghỉ với nhịp ở Rễ Cổ. Những dấu nằm cách xa nhau đang trả lời cùng một tín hiệu.'],3:['Cả hai nét sáng đồng thời rồi tắt. Một đường rêu mảnh bên mép nền khảm hướng về phía làng, không hướng sâu hơn vào rừng tổ.']}},
+ store:{x:28.3,y:-3.9,label:'Chốt cũ ở kho nhỏ',min:3,lines:{3:['Chiếc chốt vốn liền với nền kho đã tự nhả sau khi Rễ Cổ sáng lại. Bên trong chỉ có một hộc nông, không phải phòng bí mật.','Một thanh đồng mảnh chạy dưới đáy hộc theo hướng của rãnh đá ngoài ruộng. Trên thanh có cùng dấu song đôi và ba khấc định tuyến.','Không có báu vật. Thứ quan trọng là bằng chứng: kho này từng là một bộ phận của cùng hệ thống với các mốc trong làng và Rễ Cổ.']}}
+};
+function availablePoint(id,p){if(!home()||stage()<p.min)return false;if(id==='store')return true;return true;}
+function pointLines(id,p){const s=stage();return p.lines[s]||p.lines[Math.max(...Object.keys(p.lines).map(Number).filter(x=>x<=s))]||[];}
+function inspectPoint(id){const p=POINTS[id];if(!p||!availablePoint(id,p))return;const z=ensure();return say(p.label,pointLines(id,p),()=>{z.resonanceSeen[id+':'+stage()]=true;if(id==='store'){z.oldPanelOpened=true;z.archiveNote=true;}try{save();hud();}catch(_){};},null);}
+if(typeof interactables==='function'){
+ const prev=interactables;interactables=function(){const list=prev.apply(this,arguments);if(!home())return list;for(const [id,p]of Object.entries(POINTS)){if(!availablePoint(id,p))continue;list.push({kind:'v689ReactionPoint',ref:id,x:p.x,y:p.y,reach:1.18,label:p.label,btn:'Kiểm tra'});}return list;};
+}
+if(typeof interactionHint==='function'){
+ const prev=interactionHint;interactionHint=function(o){if(o?.kind==='v689ReactionPoint')return POINTS[o.ref]?.label||'Kiểm tra dấu phản ứng';return prev.apply(this,arguments);};
+}
+if(typeof interact==='function'){
+ const prev=interact;interact=function(o){if(o?.kind==='v689ReactionPoint')return inspectPoint(o.ref);return prev.apply(this,arguments);};
+}
+function pulsePoint(p,cx,cy,t,intensity=1){
+ const x=p.x*TS-cx,y=p.y*TS-cy,a=.16+.14*Math.sin(t*2.6+p.x*.11+p.y*.07);ctx.save();ctx.globalAlpha=Math.max(.05,a*intensity);ctx.strokeStyle='#b9e8c5';ctx.lineWidth=Math.max(1,TS*.035);ctx.beginPath();ctx.arc(x,y,TS*(.34+.05*Math.sin(t*2.1)),0,Math.PI*2);ctx.stroke();ctx.globalAlpha=.08*intensity;ctx.fillStyle='#d9f4d9';ctx.beginPath();ctx.arc(x,y,TS*.25,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+function routeGlow(cx,cy,t,s){
+ const segs=s>=3?[[19.1,-14.8,24,-11],[24,-11,28.3,-3.9],[-12.5,12.2,-6,15],[-6,15,0,18]]:[[19.1,-14.8,24,-11],[-12.5,12.2,-6,15]];
+ ctx.save();ctx.strokeStyle='#9fdab1';ctx.lineWidth=Math.max(1,TS*.018);ctx.globalAlpha=s>=3?.16:.08;ctx.setLineDash([Math.max(2,TS*.11),Math.max(3,TS*.18)]);ctx.lineDashOffset=-t*TS*.35;
+ for(const [x1,y1,x2,y2]of segs){ctx.beginPath();ctx.moveTo(x1*TS-cx,y1*TS-cy);ctx.lineTo(x2*TS-cx,y2*TS-cy);ctx.stroke();}ctx.restore();
+}
+function drawStorePanel(cx,cy){const p=POINTS.store,x=p.x*TS-cx,y=p.y*TS-cy,u=TS/16,open=ensure().oldPanelOpened;ctx.save();ctx.imageSmoothingEnabled=false;ctx.fillStyle='#4a3e31';ctx.fillRect(x-5*u,y-3*u,10*u,7*u);ctx.strokeStyle='#a58a5c';ctx.lineWidth=Math.max(1,u*.7);ctx.strokeRect(x-5*u,y-3*u,10*u,7*u);if(open){ctx.fillStyle='#171b18';ctx.fillRect(x-4*u,y-2*u,8*u,5*u);ctx.fillStyle='#8f774e';ctx.fillRect(x-4*u,y+3*u,8*u,2*u);ctx.strokeStyle='#c3aa72';ctx.beginPath();ctx.moveTo(x-4*u,y+3*u);ctx.lineTo(x+4*u,y+5*u);ctx.stroke();}else{ctx.fillStyle='#786247';ctx.fillRect(x-3*u,y-1*u,6*u,3*u);ctx.fillStyle='#b8a36f';ctx.fillRect(x+1*u,y,1*u,1*u);}ctx.restore();}
+if(typeof drawWorld==='function'){
+ const prev=drawWorld;drawWorld=function(t){const r=prev.apply(this,arguments);if(!home())return r;const s=stage();if(s<=0)return r;const [cx,cy]=cam();routeGlow(cx,cy,t,s);pulsePoint(POINTS.north,cx,cy,t,s>=2?1:.65);if(s>=2)pulsePoint(POINTS.west,cx,cy,t,s>=3?1:.72);if(s>=3){drawStorePanel(cx,cy);pulsePoint(POINTS.store,cx,cy,t,ensure().oldPanelOpened?.75:1.15);}return r;};
+}
+const ANNOUNCE={1:'Một nhịp rung rất nhẹ truyền qua những mốc đá cũ của Làng Thanh Mộc.',2:'Các dấu song đôi trong làng bắt đầu phản ứng theo cùng nhịp với Rễ Cổ.',3:'Rễ Cổ đã sáng lại. Một cơ cấu cũ ở khu kho phía bắc vừa được đánh thức.'};
+let tick=0;
+function syncWorld(dt=0){
+ const z=ensure(),s=stage();z.lastStage=Math.max(z.lastStage,s);tick+=dt;if(!home()||s<=0||z.announced[s]||tick<.25)return;tick=0;z.announced[s]=true;try{toast(ANNOUNCE[s]);save();}catch(_){}
+}
+if(typeof update==='function'){const prev=update;update=function(dt){const r=prev.apply(this,arguments);syncWorld(Number(dt)||0);return r;};}
+if(typeof captureState==='function'){
+ const prev=captureState;captureState=function(){const z=ensure();const out=prev.apply(this,arguments);if(out){out.villageReaction689=JSON.parse(JSON.stringify(z));out.loreNotes689={...(out.loreNotes689||{}),rootsVillageLinked:stage()>=2,rootsVillageAwake:stage()>=3,oldStorePanel:!!z.oldPanelOpened};if(out.villageExpansion684)out.villageExpansion684={...out.villageExpansion684,phase:6,version:V};}return out;};
+}
+if(typeof normalizeState==='function'){
+ const prev=normalizeState;normalizeState=function(raw){const out=prev.apply(this,arguments);if(raw?.villageReaction689)out.villageReaction689={...blank(),...raw.villageReaction689,announced:{...(raw.villageReaction689.announced||{})},npcSeen:{...(raw.villageReaction689.npcSeen||{})},resonanceSeen:{...(raw.villageReaction689.resonanceSeen||{})}};if(raw?.loreNotes689)out.loreNotes689={...raw.loreNotes689};ensure(out);return out;};
+}
+if(typeof restoreSession==='function'){
+ const prev=restoreSession;restoreSession=function(){const r=prev.apply(this,arguments);ensure(S);version689();return r;};
+}
+function version689(){try{CFG.version=V;}catch(_){}try{if(typeof HTCT!=='undefined')HTCT.version=V;}catch(_){}try{if(S?.v320)S.v320.patchVersion=V;}catch(_){}document.title='Hành Trình Cổ Thư — v'+V;document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+V);const e=document.querySelector('#devHeader678 b');if(e)e.textContent='Developer Toolbox · v'+V;}
+ensure();syncWorld(1);window.VILLAGE_PHASE6_689={phase:6,version:V,stage,points:POINTS,get state(){return{...ensure(),stage:stage()}}};version689();requestAnimationFrame(version689);
+})();
+</script>
+
+
+
+
+<!-- ============================================================
+     HÀNH TRÌNH CỔ THƯ v6.90.0 — Làng Thanh Mộc Expansion · Phase 7
+     Secret progression + Quest Journal readability redesign.
+     No combat hurt/attack-box changes.
+     ============================================================ -->
+<style id="v690-journal-style">
+/* Hành Trình Cổ Thư v6.90.0 — Phase 7 + Quest Journal readability pass */
+#journal .panel{width:min(1120px,96vw)!important;height:min(790px,90dvh)!important;}
+#journalList{display:grid!important;grid-template-columns:minmax(280px,34%) minmax(0,1fr)!important;gap:16px!important;min-height:0!important;overflow:hidden!important;padding:0!important;}
+.questNav690,.questDetail690{min-width:0!important;overflow-y:auto!important;overflow-x:hidden!important;border:1px solid rgba(214,239,219,.13)!important;border-radius:16px!important;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(5,31,30,.12))!important;}
+.questNav690{padding:12px!important;scrollbar-gutter:stable;}
+.questDetail690{padding:20px 22px!important;scrollbar-gutter:stable;}
+.journalTabs690{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;position:sticky!important;top:0!important;z-index:4!important;padding:0 0 11px!important;background:linear-gradient(180deg,rgba(18,54,52,.96) 0%,rgba(18,54,52,.91) 72%,rgba(18,54,52,0) 100%)!important;}
+.journalTabs690:has(>button:nth-child(2):last-child){grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+.journalTab690{min-height:42px!important;padding:7px 8px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;border-radius:11px!important;border:1px solid rgba(199,230,211,.16)!important;background:rgba(7,36,37,.24)!important;color:#eaf4df!important;font:700 14px/1.1 var(--body,system-ui)!important;}
+.journalTab690 b{min-width:22px!important;height:22px!important;display:grid!important;place-items:center!important;border-radius:999px!important;background:rgba(255,255,255,.08)!important;color:#dcead8!important;font-size:11px!important;}
+.journalTab690.on{border-color:rgba(239,213,144,.62)!important;background:linear-gradient(145deg,rgba(239,213,144,.16),rgba(130,207,182,.08))!important;color:#fff0bf!important;box-shadow:inset 0 1px rgba(255,255,255,.08),0 0 16px rgba(207,223,167,.06)!important;}
+.groupLabel690{font-size:11px!important;letter-spacing:.14em!important;color:#b9ccb8!important;margin:13px 5px 7px!important;}
+.questRow690,.recordRow690{width:100%!important;text-align:left!important;border:1px solid rgba(202,230,210,.10)!important;border-radius:12px!important;background:rgba(117,157,130,.07)!important;color:#eff5e7!important;padding:11px 12px!important;margin:0 0 7px!important;transition:transform .16s ease,border-color .16s ease,background .16s ease!important;}
+.questRow690:hover,.recordRow690:hover{transform:translateY(-1px)!important;border-color:rgba(217,232,194,.27)!important;background:rgba(143,174,136,.11)!important;}
+.questRow690.selected,.recordRow690.selected{border-color:rgba(239,211,140,.54)!important;background:linear-gradient(110deg,rgba(221,198,119,.14),rgba(115,174,152,.07))!important;box-shadow:inset 3px 0 #e8cb7f!important;}
+.questRow690.tracked{box-shadow:inset 3px 0 rgba(113,221,196,.62)!important;}
+.questRow690.selected.tracked{box-shadow:inset 3px 0 #efd28a!important;}
+.questRowTop690{display:flex!important;align-items:flex-start!important;gap:8px!important;justify-content:space-between!important;}
+.questRow690 strong,.recordRow690 strong{display:block!important;font-size:16px!important;line-height:1.28!important;color:#f4f1d8!important;min-width:0!important;}
+.questCurrent690{display:block!important;margin-top:7px!important;font-size:12px!important;line-height:1.42!important;color:#cad9c8!important;overflow-wrap:anywhere!important;}
+.questStatus690,.detailStatus690{white-space:nowrap!important;border-radius:999px!important;padding:4px 7px!important;font-size:10px!important;line-height:1!important;border:1px solid rgba(255,255,255,.10)!important;}
+.questStatus690.active,.detailStatus690.active{color:#bff3dd!important;background:rgba(79,173,145,.12)!important;border-color:rgba(102,216,181,.24)!important;}
+.questStatus690.available,.detailStatus690.available{color:#f0dba2!important;background:rgba(196,154,76,.10)!important;border-color:rgba(230,194,119,.22)!important;}
+.detailHead690{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:16px!important;margin-bottom:11px!important;}
+.questEyebrow690{display:block!important;font-size:11px!important;letter-spacing:.16em!important;color:#a8cbb9!important;margin-bottom:7px!important;}
+.questDetail690 h2{font-size:clamp(25px,2.3vw,34px)!important;line-height:1.15!important;color:#fff0c3!important;text-align:left!important;margin:0!important;}
+.questStory690,.questSteps690{margin:10px 0!important;border:1px solid rgba(200,226,206,.10)!important;border-radius:11px!important;background:rgba(9,37,36,.17)!important;overflow:hidden!important;}
+.questStory690 summary,.questSteps690 summary{cursor:pointer!important;list-style:none!important;padding:10px 12px!important;color:#d8e3d2!important;font-size:13px!important;font-weight:700!important;}
+.questStory690 summary::-webkit-details-marker,.questSteps690 summary::-webkit-details-marker{display:none!important;}
+.questStory690 summary::after,.questSteps690 summary::after{content:'＋'!important;float:right!important;color:#d8ca91!important;}
+.questStory690[open] summary::after,.questSteps690[open] summary::after{content:'−'!important;}
+.questStory690 p{padding:0 12px 12px!important;margin:0!important;color:#dce6d9!important;font-size:14px!important;line-height:1.55!important;}
+.currentObjective690{margin:14px 0 12px!important;padding:15px 16px!important;border-radius:13px!important;border:1px solid rgba(239,211,140,.25)!important;background:linear-gradient(115deg,rgba(224,197,117,.12),rgba(88,164,145,.07))!important;}
+.miniLabel690{display:block!important;font-size:10px!important;letter-spacing:.15em!important;color:#c8b97c!important;margin:0 0 7px!important;font-weight:800!important;}
+.currentObjective690 strong{display:block!important;color:#f7f4dd!important;font-size:18px!important;line-height:1.38!important;font-weight:700!important;}
+.currentObjective690 small{display:block!important;margin-top:8px!important;color:#b9cdbd!important;font-size:11px!important;}
+.stepsList690{padding:0 9px 9px!important;}
+.step690{display:grid!important;grid-template-columns:24px minmax(0,1fr) auto!important;gap:7px!important;align-items:start!important;padding:8px!important;border-radius:8px!important;color:#cad6c8!important;font-size:13px!important;line-height:1.4!important;}
+.step690.current{background:rgba(226,202,126,.08)!important;color:#f2ecd0!important;}
+.step690.done{opacity:.6!important;}
+.stepMark690{font-weight:800!important;color:#b7c9b4!important;}
+.step690.current .stepMark690{color:#efd184!important;}
+.step690.done .stepMark690{color:#82c9a2!important;}
+.rewardChips690{display:flex!important;gap:7px!important;flex-wrap:wrap!important;margin:0 0 16px!important;}
+.rewardChips690 span{padding:6px 9px!important;border-radius:999px!important;background:rgba(136,181,149,.09)!important;border:1px solid rgba(176,218,189,.13)!important;color:#e4ecd9!important;font-size:12px!important;}
+.track690{margin-top:5px!important;}
+.mysteryIntro690,.empty690{font-size:13px!important;line-height:1.5!important;color:#bdcfc1!important;margin:11px 5px!important;}
+.recordRow690 small{display:block!important;color:#9eb7aa!important;font-size:9px!important;letter-spacing:.12em!important;margin-bottom:5px!important;}
+.mysteryText690{margin-top:16px!important;padding:16px!important;border-radius:13px!important;border:1px solid rgba(150,204,183,.16)!important;background:rgba(44,101,89,.08)!important;color:#e0eadc!important;font-size:16px!important;line-height:1.65!important;}
+.mysteryConclusion690{margin-top:14px!important;padding:13px 14px!important;border-left:3px solid rgba(229,202,127,.72)!important;background:rgba(225,201,127,.07)!important;color:#d9e1d1!important;font-size:13px!important;line-height:1.55!important;}
+body[data-ui-theme="glass"] #questBox .questBoxTitle{letter-spacing:.14em!important;}
+@media(max-width:760px){
+ #journal .panel{width:96vw!important;height:91dvh!important;padding-left:11px!important;padding-right:11px!important;}
+ #journalList{grid-template-columns:1fr!important;grid-template-rows:minmax(185px,34vh) minmax(0,1fr)!important;gap:10px!important;overflow:hidden!important;}
+ .questNav690{padding:9px!important;max-height:none!important;border-bottom:1px solid rgba(214,239,219,.13)!important;}
+ .questDetail690{padding:14px 13px!important;}
+ .journalTabs690{gap:5px!important;padding-bottom:8px!important;}
+ .journalTab690{min-height:37px!important;font-size:12px!important;padding:6px!important;}
+ .journalTab690 b{min-width:19px!important;height:19px!important;font-size:9px!important;}
+ .groupLabel690{font-size:9px!important;margin:9px 4px 5px!important;}
+ .questRow690,.recordRow690{padding:9px 10px!important;margin-bottom:5px!important;}
+ .questRow690 strong,.recordRow690 strong{font-size:14px!important;}
+ .questCurrent690{font-size:11px!important;margin-top:5px!important;}
+ .questStatus690{font-size:9px!important;padding:3px 6px!important;}
+ .detailHead690{gap:8px!important;}
+ .questDetail690 h2{font-size:22px!important;}
+ .currentObjective690{padding:12px!important;margin:10px 0!important;}
+ .currentObjective690 strong{font-size:16px!important;}
+ .questStory690 p,.step690,.mysteryConclusion690{font-size:12px!important;}
+ .mysteryText690{font-size:14px!important;line-height:1.55!important;padding:13px!important;}
+}
+</style>
+
+<script id="v690-village-expansion-phase7">
+(()=>{'use strict';
+const V='6.90.0',HOME='home';
+const home=()=>!S?.realm640||S.realm640===HOME;
+const IDS=['mosaicGroove','storeStrip','archiveNames','archiveRoutes','archiveTwin','erasedRecord'];
+const RECORDS={
+ mosaicGroove:{title:'Rãnh sau nền khảm',kicker:'KHU TƯỞNG NIỆM',text:'Sau nền khảm song đôi có một rãnh cực mảnh, không phải vết nứt tự nhiên. Hướng rãnh quay về phía khu kho cũ, như thể hai nơi từng được dùng để đối chiếu với nhau.'},
+ storeStrip:{title:'Thanh đồng ba khấc',kicker:'KHO CŨ PHÍA BẮC',text:'Dưới hộc kho là một thanh đồng có ba khấc định tuyến. Cách đặt hai nét trên thanh trùng với nền khảm ở khu tưởng niệm, nhưng khấc cuối quay về phía Rừng Tổ.'},
+ archiveNames:{title:'Phiến ghi tên không chức danh',kicker:'HỐC GHI DANH',text:'Một phiến đá ghi nhiều tên người thuộc các thế hệ khác nhau. Phần đứng sau tên đã bị cạo đều tay, cho thấy chức danh từng bị xóa có chủ ý chứ không phải mòn tự nhiên.'},
+ archiveRoutes:{title:'Sổ tuyến mòn',kicker:'HỐC GHI DANH',text:'Các tuyến trong sổ nối kho, khu tưởng niệm, Rừng Tổ và hướng Rễ Cổ. Không có tuyến nào được gọi bằng tên địa điểm; chúng chỉ được đánh theo số và nhịp.'},
+ archiveTwin:{title:'Bản khắc hai dấu',kicker:'HỐC GHI DANH',text:'Hai dấu gần giống nhau được khắc song song nhưng không hoàn toàn đồng nhất. Một dấu có nét khép vào trong, dấu còn lại có nét mở ra ngoài. Người xưa dường như cố phân biệt hai nhiệm vụ khác nhau.'},
+ erasedRecord:{title:'Dòng chức danh bị cạo',kicker:'HỒ SƠ CUỐI HỐC GHI DANH',text:'Ở lớp đá dưới cùng còn sót hai đầu từ: “giữ…” và “mở…”. Cả hai nhóm tên đều cùng ký vào một bản ghi. Chưa có bằng chứng nào cho thấy họ là kẻ thù — chỉ biết họ không làm cùng một việc.'}
+};
+function blank(){return{version:V,discovered:false,passageOpen:false,records:{},seen:{},finalRecord:false};}
+function ensure(st=S){
+ if(!st||typeof st!=='object')return blank();
+ if(!st.secret690||typeof st.secret690!=='object')st.secret690=blank();
+ const z=st.secret690;z.version=V;z.records=z.records&&typeof z.records==='object'?z.records:{};z.seen=z.seen&&typeof z.seen==='object'?z.seen:{};
+ z.discovered=!!z.discovered;z.passageOpen=!!z.passageOpen;z.finalRecord=!!z.finalRecord;
+ return z;
+}
+function rootsStage(){try{return window.VILLAGE_PHASE6_689?.stage?.()||0}catch(_){return 0}}
+function done(id){try{return QM.status(id)==='completed'}catch(_){return false}}
+function prereq(){return done('v688_markers')&&rootsStage()>=2;}
+function addRecord(id){const z=ensure();if(!RECORDS[id]||z.records[id])return false;z.records[id]=Date.now();z.discovered=true;try{toast('Hồ sơ bí ẩn mới: '+RECORDS[id].title);Snd?.sfx?.('pick');save();}catch(_){}return true;}
+function allArchive(){const z=ensure();return ['archiveNames','archiveRoutes','archiveTwin'].every(id=>!!z.records[id]);}
+function setTile690(x,y,v){if(!grid[y])grid[y]=[];grid[y][x]=v;}
+function applySecretTerrain(){const z=ensure();if(!z.passageOpen)return;
+ // A narrow path continues behind the deep marker into a small hidden record pocket.
+ for(const [x,y] of [[-18,31],[-17,31],[-18,32],[-17,32],[-16,32],[-15,32],[-14,32],[-18,33],[-17,33],[-16,33],[-15,33],[-14,33]])setTile690(x,y,T.PATH);
+ try{minimapWorldCache=null;minimapTerrainCache=null;}catch(_){}
+}
+function dialogue(title,lines,after){try{return say(title,lines,after)}catch(_){after?.();}}
+const SECRET_POINTS={
+ mosaic:{x:-12.5,y:12.2,label:'Khe rất mảnh sau nền khảm',available:()=>prereq()&&!ensure().records.mosaicGroove,act(){dialogue('Nền khảm song đôi',[RECORDS.mosaicGroove.text,'Bạn không thấy cơ cấu mở nào ở đây, chỉ có một hướng rãnh rất rõ: nó quay về khu kho phía bắc.'],()=>addRecord('mosaicGroove'));}},
+ store:{x:28.3,y:-3.9,label:'Thanh đồng dưới hộc kho',available:()=>!!ensure().records.mosaicGroove&&rootsStage()>=3&&!!S?.villageReaction689?.oldPanelOpened&&!ensure().records.storeStrip,act(){dialogue('Hộc kho cũ',[RECORDS.storeStrip.text,'Khấc cuối trên thanh đồng không chỉ về khu dân cư. Nó quay về mốc sâu nhất ở Rừng Tổ.'],()=>addRecord('storeStrip'));}},
+ deep:{x:-18.2,y:31.0,label:'Mốc sâu có rãnh trùng khớp',available:()=>!!ensure().records.mosaicGroove&&!!ensure().records.storeStrip&&!ensure().passageOpen,act(){dialogue('Mốc sâu Rừng Tổ',['Khi đặt hai hướng ghi chép cạnh nhau, rãnh dưới mốc sâu khớp chính xác với khấc cuối của thanh đồng.','Một phiến đá sát gốc cây trượt xuống vài phân. Sau nó không phải đường hầm lớn, chỉ là một lối hẹp dẫn vào hốc đá bị cây che kín.'],()=>{const z=ensure();z.passageOpen=true;z.discovered=true;applySecretTerrain();try{toast('Đã mở một lối ẩn trong Rừng Tổ.');save();}catch(_){}});}}
+};
+const ARCHIVE_POINTS={
+ archiveNames:{x:-18.0,y:32.6,label:'Phiến ghi tên'},
+ archiveRoutes:{x:-16.0,y:32.3,label:'Sổ tuyến đã mục'},
+ archiveTwin:{x:-14.2,y:32.5,label:'Bản khắc hai dấu'},
+ erasedRecord:{x:-16.0,y:33.25,label:'Mảnh đá nằm dưới cùng'}
+};
+function archiveAvailable(id){const z=ensure();if(!z.passageOpen)return false;if(id==='erasedRecord')return allArchive()&&!z.records.erasedRecord;return !z.records[id];}
+function inspectArchive(id){if(!archiveAvailable(id))return;const rec=RECORDS[id];const extra=id==='erasedRecord'?['Bạn chỉ đọc được hai đầu từ còn sót lại. Phần giữa đã bị cạo sạch từ rất lâu.','Điều đáng chú ý nhất: cả hai nhóm tên xuất hiện trong cùng một hồ sơ, cùng ngày và cùng dấu xác nhận.']:['Bạn ghi lại nội dung vào Hồ sơ bí ẩn. Không lấy vật khỏi vị trí.'];dialogue(rec.title,[rec.text,...extra],()=>{addRecord(id);if(id==='erasedRecord'){const z=ensure();z.finalRecord=true;try{toast('Hồ sơ bí ẩn đã có một kết luận tạm thời.');save();}catch(_){}}});}
+if(typeof interactables==='function'){
+ const prev=interactables;interactables=function(){const list=prev.apply(this,arguments);if(!home())return list;for(const p of Object.values(SECRET_POINTS))if(p.available())list.push({kind:'secret690',ref:p,x:p.x,y:p.y,reach:1.1,label:p.label,btn:'Kiểm tra'});for(const [id,p] of Object.entries(ARCHIVE_POINTS))if(archiveAvailable(id))list.push({kind:'archive690',ref:id,x:p.x,y:p.y,reach:1.05,label:p.label,btn:'Đọc'});return list;};
+}
+if(typeof interactionHint==='function'){
+ const prev=interactionHint;interactionHint=function(o){if(o?.kind==='secret690')return o.ref?.label||'Kiểm tra dấu kín';if(o?.kind==='archive690')return ARCHIVE_POINTS[o.ref]?.label||'Đọc hồ sơ';return prev.apply(this,arguments);};
+}
+if(typeof interact==='function'){
+ const prev=interact;interact=function(o){if(o?.kind==='secret690')return o.ref?.act?.();if(o?.kind==='archive690')return inspectArchive(o.ref);return prev.apply(this,arguments);};
+}
+function faintCue(x,y,cx,cy,t,a=.14){const sx=x*TS-cx,sy=y*TS-cy;ctx.save();ctx.globalAlpha=a*(.72+.28*Math.sin(t*2.1));ctx.strokeStyle='#c9e7cf';ctx.lineWidth=Math.max(1,TS*.018);ctx.beginPath();ctx.arc(sx,sy,TS*.22,0,Math.PI*2);ctx.stroke();ctx.restore();}
+if(typeof drawWorld==='function'){
+ const prev=drawWorld;drawWorld=function(t){applySecretTerrain();const r=prev.apply(this,arguments);if(!home())return r;let cx=0,cy=0;try{[cx,cy]=cam()}catch(_){return r}const z=ensure();for(const p of Object.values(SECRET_POINTS))if(p.available()&&Math.hypot(P.x-p.x,P.y-p.y)<2.8)faintCue(p.x,p.y,cx,cy,t,.16);if(z.passageOpen){for(const [id,p]of Object.entries(ARCHIVE_POINTS))if(archiveAvailable(id)&&Math.hypot(P.x-p.x,P.y-p.y)<3.2)faintCue(p.x,p.y,cx,cy,t,.12);}return r;};
+}
+if(typeof build==='function'){const prev=build;build=function(){const r=prev.apply(this,arguments);applySecretTerrain();return r;};}
+if(typeof update==='function'){const prev=update;let terrainGuard=0;update=function(dt){const r=prev.apply(this,arguments);terrainGuard-=Number(dt)||0;if(terrainGuard<=0){terrainGuard=.8;applySecretTerrain();}return r;};}
+
+/* ================= Quest Journal 6.90 — readability pass ================= */
+let tab690='main',selected690=null,tabTouched690=false,recordSelected690=null;
+const $690=id=>document.getElementById(id);
+function e690(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+function qStatus(q){try{return QM.status(q.id)}catch(_){return'locked'}}
+function stateFor(q){return S?.quests?.[q.id]||{objectives:{}}}
+function objectiveInfo(q){const st=stateFor(q),arr=q.objectives||[];let idx=arr.findIndex(o=>(st.objectives?.[o.id]||0)<(o.required||1));if(idx<0)return{done:true,idx:arr.length,doneCount:arr.length,total:arr.length};const o=arr[idx],n=Math.min(o.required||1,st.objectives?.[o.id]||0);return{o,n,idx,done:false,doneCount:idx,total:arr.length,ready:idx===arr.length-1&&o.type==='talk'};}
+function liveQuests(){try{QM.ensure()}catch(_){}return (QUEST_DEFS||[]).filter(q=>['active','available'].includes(qStatus(q)));}
+function category(q){return q?.type==='main'?'main':'side'}
+function statusLabel(q){const st=qStatus(q);if(st==='available')return'Có thể nhận';const i=objectiveInfo(q);return i.ready?'Sẵn sàng báo cáo':'Đang làm';}
+function currentText(q){if(qStatus(q)==='available')return'Gặp người giao nhiệm vụ để bắt đầu.';const i=objectiveInfo(q);if(i.done)return'Đã đủ mục tiêu.';return i.o.text+((i.o.required||1)>1?' · '+i.n+'/'+i.o.required:'');}
+function countBy(cat){return liveQuests().filter(q=>category(q)===cat).length;}
+function mysteryIds(){const z=ensure();return IDS.filter(id=>z.records[id]);}
+function chooseInitialTab(){if(tabTouched690)return;const tracked=(QUEST_DEFS||[]).find(q=>q.id===S?.trackedQuest626&&['active','available'].includes(qStatus(q)));if(tracked)tab690=category(tracked);}
+function makeTabs(nav){const bar=e690('div','journalTabs690');const defs=[['main','Chính',countBy('main')],['side','Phụ',countBy('side')]];if(ensure().discovered)defs.push(['mystery','Bí ẩn',mysteryIds().length]);for(const [id,label,count]of defs){const b=e690('button','journalTab690'+(tab690===id?' on':''));b.type='button';b.append(e690('span',null,label),e690('b',null,String(count)));b.onclick=()=>{tabTouched690=true;tab690=id;selected690=null;recordSelected690=null;renderJournal();};bar.append(b)}nav.append(bar);}
+function questRow(q){const active=qStatus(q)==='active',tracked=S?.trackedQuest626===q.id,b=e690('button','questRow690'+(selected690===q.id?' selected':'')+(tracked?' tracked':''));b.type='button';const top=e690('div','questRowTop690');top.append(e690('strong',null,q.title),e690('span','questStatus690 '+(active?'active':'available'),statusLabel(q)));b.append(top,e690('small','questCurrent690',(tracked?'◆ ':'')+currentText(q)));b.onclick=()=>{selected690=q.id;renderJournal();};return b;}
+function rewardText(q){const a=[];if(q.rewards?.coins)a.push('🪙 '+q.rewards.coins+' Lam thạch');for(const item of q.rewards?.items||[]){const id=typeof item==='string'?item:item.id,count=typeof item==='string'?1:item.count||1,name=(ITEMS||[]).find(x=>x.id===id)?.name||id;a.push(name+(count>1?' ×'+count:''));}return a;}
+function questDetail(q,detail){const st=qStatus(q),info=objectiveInfo(q);const head=e690('div','detailHead690');const left=e690('div');left.append(e690('span','questEyebrow690',category(q)==='main'?'HÀNH TRÌNH CHÍNH':'CHUYỆN TRONG LÀNG'),e690('h2',null,q.title));head.append(left,e690('span','detailStatus690 '+(st==='active'?'active':'available'),statusLabel(q)));detail.append(head);
+ if(q.description){const d=document.createElement('details');d.className='questStory690';const s=e690('summary',null,'Xem mô tả nhiệm vụ');d.append(s,e690('p',null,q.description));detail.append(d)}
+ const current=e690('section','currentObjective690');current.append(e690('span','miniLabel690',st==='available'?'BƯỚC TIẾP THEO':'MỤC TIÊU HIỆN TẠI'),e690('strong',null,currentText(q)));if(st==='active'&&!info.done)current.append(e690('small',null,'Tiến độ '+info.doneCount+'/'+info.total+' bước'));detail.append(current);
+ if(st==='active'&&(q.objectives||[]).length){const d=document.createElement('details');d.className='questSteps690';const sum=e690('summary',null,'Tiến độ toàn bộ · '+info.doneCount+'/'+info.total);d.append(sum);const box=e690('div','stepsList690'),qs=stateFor(q);for(const o of q.objectives||[]){const n=Math.min(o.required||1,qs.objectives?.[o.id]||0),done=n>=(o.required||1),row=e690('div','step690'+(done?' done':'')+(!done&&o===info.o?' current':''));row.append(e690('span','stepMark690',done?'✓':'○'),e690('span',null,o.text),e690('b',null,(o.required||1)>1?n+'/'+o.required:''));box.append(row)}d.append(box);detail.append(d)}
+ const rewards=rewardText(q);if(rewards.length){const box=e690('div','rewardChips690');for(const x of rewards)box.append(e690('span',null,x));detail.append(e690('span','miniLabel690','PHẦN THƯỞNG'),box)}
+ if(st==='active'){const track=e690('button','btn track690',S?.trackedQuest626===q.id?'◆ Đang theo dõi':'Theo dõi nhiệm vụ');track.disabled=S?.trackedQuest626===q.id;track.onclick=()=>{S.trackedQuest626=q.id;try{save();hud();}catch(_){}renderJournal();};detail.append(track)}
+}
+function mysteryNav(nav){const ids=mysteryIds();nav.append(e690('p','mysteryIntro690','Hồ sơ chỉ xuất hiện sau khi bạn thực sự chạm vào dấu vết.'));if(!ids.length){nav.append(e690('p','empty690','Chưa ghi nhận hồ sơ nào.'));return;}if(!recordSelected690||!ids.includes(recordSelected690))recordSelected690=ids[ids.length-1];for(const id of ids){const r=RECORDS[id],b=e690('button','recordRow690'+(recordSelected690===id?' selected':''));b.type='button';b.append(e690('small',null,r.kicker),e690('strong',null,r.title));b.onclick=()=>{recordSelected690=id;renderJournal();};nav.append(b)}}
+function mysteryDetail(detail){const ids=mysteryIds();if(!ids.length){detail.append(e690('h2',null,'Hồ sơ bí ẩn'),e690('p','empty690','Những gì bạn tự phát hiện sẽ được ghi lại ở đây.'));return;}const id=recordSelected690&&ids.includes(recordSelected690)?recordSelected690:ids[ids.length-1],r=RECORDS[id];detail.append(e690('span','questEyebrow690',r.kicker),e690('h2',null,r.title),e690('div','mysteryText690',r.text));const z=ensure();const note=e690('div','mysteryConclusion690');if(z.finalRecord)note.textContent='Kết luận tạm thời: lịch sử của làng từng có ít nhất hai nhiệm vụ khác nhau cùng tồn tại. Chưa đủ bằng chứng để kết luận bên nào đúng hoặc sai.';else if(z.passageOpen)note.textContent='Các hồ sơ trong hốc đá đang bổ sung cho những dấu đã tìm ngoài làng. Chưa nên kết luận quá sớm.';else note.textContent='Dấu vết này có liên hệ với một vị trí khác trong làng. Hãy quan sát môi trường thay vì chỉ tìm dấu nhiệm vụ.';detail.append(note);}
+renderJournal=function(){
+ try{QM.ensure()}catch(_){}chooseInitialTab();const root=$690('journalList');if(!root)return;root.replaceChildren();const nav=e690('section','questNav690'),detail=e690('section','questDetail690');makeTabs(nav);
+ if(tab690==='mystery'){mysteryNav(nav);mysteryDetail(detail);$690('journalSub').textContent='Hồ sơ bí ẩn chỉ ghi lại những gì bạn đã thực sự phát hiện.';root.append(nav,detail);return;}
+ const list=liveQuests().filter(q=>category(q)===tab690).sort((a,b)=>{const ta=S?.trackedQuest626===a.id?-2:0,tb=S?.trackedQuest626===b.id?-2:0;if(ta!==tb)return ta-tb;const sa=qStatus(a)==='active'?0:1,sb=qStatus(b)==='active'?0:1;return sa-sb;});
+ if(!list.some(q=>q.id===selected690))selected690=list.find(q=>q.id===S?.trackedQuest626)?.id||list[0]?.id||null;
+ const active=list.filter(q=>qStatus(q)==='active'),available=list.filter(q=>qStatus(q)==='available');if(active.length){nav.append(e690('h3','groupLabel690','ĐANG LÀM'));for(const q of active)nav.append(questRow(q));}if(available.length){nav.append(e690('h3','groupLabel690','CÓ THỂ NHẬN'));for(const q of available)nav.append(questRow(q));}if(!list.length)nav.append(e690('p','empty690',tab690==='main'?'Hiện chưa có nhiệm vụ chính cần xử lý.':'Hiện chưa có nhiệm vụ phụ cần xử lý.'));
+ const q=list.find(q=>q.id===selected690);if(q)questDetail(q,detail);else detail.append(e690('h2',null,'Nhật ký nhiệm vụ'),e690('p','empty690','Khi có nhiệm vụ phù hợp, mục tiêu hiện tại sẽ xuất hiện ở đây.'));
+ const mainN=countBy('main'),sideN=countBy('side');$690('journalSub').textContent='Đang có '+mainN+' nhiệm vụ chính và '+sideN+' nhiệm vụ phụ cần chú ý.';root.append(nav,detail);
+};
+function journalSync(){const title=document.querySelector('#questBox .questBoxTitle');if(title)title.textContent='ĐANG THEO DÕI';if(document.getElementById('journal')?.classList.contains('on'))try{renderJournal()}catch(_){}}
+
+if(typeof captureState==='function'){
+ const prev=captureState;captureState=function(){const z=ensure();const out=prev.apply(this,arguments);if(out){out.secret690=JSON.parse(JSON.stringify(z));out.villageExpansion684={...(out.villageExpansion684||{}),phase:7,version:V};}return out;};
+}
+if(typeof normalizeState==='function'){
+ const prev=normalizeState;normalizeState=function(raw){const out=prev.apply(this,arguments);if(raw?.secret690)out.secret690={...blank(),...raw.secret690,records:{...(raw.secret690.records||{})},seen:{...(raw.secret690.seen||{})}};ensure(out);return out;};
+}
+if(typeof restoreSession==='function'){
+ const prev=restoreSession;restoreSession=function(){const r=prev.apply(this,arguments);ensure(S);applySecretTerrain();version690();journalSync();return r;};
+}
+function version690(){try{CFG.version=V}catch(_){}try{if(typeof HTCT!=='undefined')HTCT.version=V}catch(_){}try{if(S?.v320)S.v320.patchVersion=V}catch(_){}document.title='Hành Trình Cổ Thư — v'+V;document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+V);const d=document.querySelector('#devHeader678 b');if(d)d.textContent='Developer Toolbox · v'+V;}
+ensure();applySecretTerrain();version690();journalSync();window.VILLAGE_PHASE7_690={phase:7,version:V,records:RECORDS,points:SECRET_POINTS,archives:ARCHIVE_POINTS,prereq,applyTerrain:applySecretTerrain,addRecord,inspectArchive,archiveAvailable,get state(){return JSON.parse(JSON.stringify(ensure()))}};requestAnimationFrame(()=>{version690();journalSync();});
+})();
+
+</script>
+
+<!-- ============================================================
+     HÀNH TRÌNH CỔ THƯ v6.91.0 — Làng Thanh Mộc Expansion · Phase 8
+     Long-term reactive village hub / return beats / NPC viewpoints.
+     No combat hurt/attack-box changes.
+     ============================================================ -->
+<style id="v691-village-hub-style">
+#hubPulse691{position:fixed;left:50%;top:18%;transform:translate(-50%,-10px);z-index:120;pointer-events:none;opacity:0;transition:opacity .25s ease,transform .25s ease;min-width:min(520px,82vw);max-width:82vw;padding:12px 16px;border-radius:15px;border:1px solid rgba(218,235,198,.25);background:linear-gradient(135deg,rgba(23,55,51,.83),rgba(9,28,31,.79));backdrop-filter:blur(12px) saturate(1.15);box-shadow:0 13px 36px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.08);color:#f4efd8;text-align:center;font:700 14px/1.35 var(--body,system-ui)}
+#hubPulse691.on{opacity:1;transform:translate(-50%,0)}
+#hubPulse691 small{display:block;margin-top:3px;color:#bad1c2;font-size:11px;font-weight:500;letter-spacing:.04em}
+@media(max-width:760px){#hubPulse691{top:15%;min-width:78vw;padding:10px 12px;font-size:12px}}
+</style>
+<script id="v691-village-expansion-phase8">
+(()=>{'use strict';
+const V='6.91.0',HOME='home';
+const CORE=new Set(['elder','mai','bo','ranger','farmer1','granny1','smith']);
+const home=()=>!S?.realm640||S.realm640===HOME;
+const inVillageCore=()=>home()&&Number(P?.y)>-1&&Number(P?.y)<34&&Number(P?.x)>-1&&Number(P?.x)<36;
+function blank(){return{version:V,visitedCity:false,pendingCityReturn:false,returnedFromCity:false,stageSeen:{},npcSeen:{},boardReads:0,lastRealm:null,lastStage:0};}
+function ensure(st=S){if(!st||typeof st!=='object')return blank();if(!st.hub691||typeof st.hub691!=='object')st.hub691=blank();const z=st.hub691;z.version=V;z.stageSeen=z.stageSeen&&typeof z.stageSeen==='object'?z.stageSeen:{};z.npcSeen=z.npcSeen&&typeof z.npcSeen==='object'?z.npcSeen:{};z.boardReads=Math.max(0,Number(z.boardReads)||0);z.lastStage=Math.max(0,Number(z.lastStage)||0);return z;}
+function rootsDone(){return S?.quests?.roots_heart?.status==='completed'||!!S?.progress683?.forestUpperUnlocked;}
+function secretDone(){return !!S?.secret690?.finalRecord;}
+function cityMap(){return !!S?.journey682?.map;}
+function stage(){const z=ensure();if(z.returnedFromCity)return 4;if(cityMap())return 3;if(secretDone())return 2;if(rootsDone())return 1;return 0;}
+const ANNOUNCE={
+ 1:['Thanh Mộc không còn hoàn toàn yên như trước.','Một vài mốc cũ trong làng đang được người dân để mắt trở lại.'],
+ 2:['Có những câu chuyện trong làng bắt đầu không còn khớp nhau.','Không ai nói thành lời, nhưng vài người đã bắt đầu nhìn những dấu cũ theo cách khác.'],
+ 3:['Tin về con đường tới Thành Phố Vụn Vỡ đã lan trong làng.','Kho phía bắc bắt đầu được sắp lại cho những chuyến đi dài hơn.'],
+ 4:['Bạn đã trở lại Thanh Mộc sau khi đặt chân tới Thành Phố Vụn Vỡ.','Làng vẫn là ngôi làng cũ — nhưng cách mọi người nhìn hành trình của bạn đã khác.']
+};
+const VIEW={
+ elder:{
+ 1:['Rễ Cổ đã đáp lại. Từ giờ con đừng xem Thanh Mộc chỉ là nơi để quay về nghỉ chân. Có những thứ trong làng sẽ đổi theo những gì con đánh thức ngoài kia.'],
+ 2:['Những chữ “giữ” và “mở” chưa đủ để chia người xưa thành hai phía. Đừng để một mảnh câu biến thành cả bản án.'],
+ 3:['Đường tới Thành Phố Vụn Vỡ đã hiện, nhưng bản đồ chỉ nói được nơi cần đi — không nói được thứ gì nên mang về.'],
+ 4:['Con đã thấy thành phố rồi. Từ đây, mỗi lần mở một con đường mới, hãy tự hỏi: ta mở nó để hiểu quá khứ, hay để lặp lại nó?']},
+ mai:{
+ 1:['Em đi Rễ Cổ về là mấy trang sổ cũ trong nhà chị hiện nét đậm hơn. Chị sẽ chép lại bản sao, còn bản gốc thì không mang ra khỏi làng.'],
+ 2:['Hai chức danh bị cạo không nằm cùng một cột trong sổ. Có thể họ khác nhiệm vụ, chưa chắc khác phe. Chị muốn tìm thêm bằng chứng trước khi gọi tên họ.'],
+ 3:['Nếu em thật sự đi tới thành phố, mang về bản chép hoặc ký hiệu thôi. Đừng vội mang di vật lạ về Thanh Mộc.'],
+ 4:['Những dấu em mô tả ở thành phố dùng cùng nhịp chia nét với sổ làng. Chị bắt đầu nghĩ Thanh Mộc từng là một điểm trong mạng lưới lớn hơn nhiều.']},
+ bo:{
+ 1:['Mấy đường tắt ông nội dạy em bắt đầu có ý nghĩa rồi. Nếu chúng từng nối các trạm, chắc còn đường khác mà tụi mình chưa thấy.'],
+ 2:['Nếu “giữ” với “mở” là hai việc khác nhau thì biết đâu người xưa phải cần cả hai. Em chưa muốn tin một bên là kẻ xấu chỉ vì tên nghe đáng ngờ hơn.'],
+ 3:['Bản đồ thành phố có mấy góc gấp giống cách ông nội dạy em đánh dấu lối rẽ. Em muốn thử vẽ lại toàn bộ tuyến cũ của làng.'],
+ 4:['Thành phố còn cổng khác đúng không? Nếu vậy Thanh Mộc có thể không phải điểm bắt đầu — chỉ là một nút còn sống sót.']},
+ ranger:{
+ 1:['Rễ Cổ hoạt động lại thì các mốc rừng cũng đổi nhịp. Tôi sẽ kiểm tra tuyến thường xuyên hơn, không để người trong làng tự ý nhổ hay dời cọc nữa.'],
+ 2:['Tôi không quan tâm họ gọi mình là người giữ hay người mở. Nếu một tuyến còn hoạt động, tôi cần biết nó dẫn tới đâu và thứ gì có thể đi ngược về.'],
+ 3:['Khi cổng thành phố mở, tuyến rừng sẽ thành đường qua lại chứ không còn là đường cụt. Tôi sẽ tăng vòng tuần ở phía bắc.'],
+ 4:['Từ thành phố trở về an toàn là một chuyện. Giữ cho thứ bên kia không lần theo đường về là chuyện khác. Tôi sẽ coi cổng như một biên giới mới.']},
+ farmer1:{
+ 1:['Bác đã bảo mọi người đừng lấp rãnh đá nữa. Nếu nó thuộc cùng hệ với Rễ Cổ thì sửa ruộng cũng phải cẩn thận hơn.'],
+ 2:['Người xưa có thể tranh cãi chuyện gì lớn lắm, nhưng cuối cùng vẫn phải có người chở đồ, sửa đường, lo thức ăn. Bác nghĩ nhà mình từng làm phần đó.'],
+ 3:['Nếu con đường tới thành phố dùng lại được, kho phía bắc sẽ cần chia một góc riêng cho đồ đi xa. Không thể xếp chung với nông cụ nữa.'],
+ 4:['Đi xa rồi vẫn phải quay về ăn, ngủ và sửa đồ. Cứ xem kho phía bắc là chỗ chuẩn bị chuyến đi. Bác sẽ giữ phần hậu cần ở mức vừa đủ.']},
+ granny1:{
+ 1:['Người xưa hay nói “đường thức thì lời cũ cũng thức”. Bà từng nghĩ đó là cách dọa trẻ con. Giờ thì không chắc nữa.'],
+ 2:['Hai chữ còn sót lại chưa nói ai đúng. Trong chuyện xưa, người giữ cửa và người mở cửa đôi khi là cùng một nhà, chỉ khác lúc phải làm việc.'],
+ 3:['Khi người ta chuẩn bị đi tới một nơi đã mất tên trên bản đồ, điều nên nhớ nhất không phải đường đi — mà là lý do muốn tới đó.'],
+ 4:['Con trở về được thì tốt. Thành phố còn đứng nghĩa là có người từng muốn nó được tìm thấy, hoặc từng không thể phá nó đi. Hai khả năng ấy rất khác nhau.']},
+ smith:{
+ 1:['Khuôn cũ nóng lên từ lúc Rễ Cổ sáng. Ta sẽ chưa đúc gì cả. Chưa biết ổ khóa ở đâu mà làm chìa thì chỉ tự tạo thêm rắc rối.'],
+ 2:['Nếu thật sự có người “giữ” và người “mở”, dòng thợ rèn có thể đã làm đồ cho cả hai. Khóa và chìa vốn sinh ra cùng một xưởng.'],
+ 3:['Đi thành phố thì kiểm tra đồ trước. Những cơ cấu cổ không hợp với lực mạnh; thứ kẹt nghìn năm càng không nên dùng búa giải quyết.'],
+ 4:['Mô tả của con về cổng thành phố giống vài khuôn trong lò. Điều đó làm ta khó chịu hơn là vui. Dòng thợ rèn này có thể từng biết thành phố rõ hơn những gì còn được kể.']}
+};
+const AMBIENT={
+ 3:{
+   v686_farmer_hoa:['Kho phía bắc đang dành riêng một góc cho đồ đi xa. Ruộng vẫn phải làm, nhưng làng bắt đầu chuẩn bị khác trước.'],
+   v686_keeper_van:['Từ lúc bản đồ được ghép, hàng xuất kho đều phải ghi rõ ai mang đi và đi theo tuyến nào.'],
+   v686_porter_binh:['Tôi đang dọn lối xe lên kho. Có vẻ sắp tới hàng không chỉ chạy quanh Thanh Mộc nữa.'],
+   v686_carrier_tin:['Mấy thùng có dấu cũ được tách riêng rồi. Không ai muốn vô tình gửi nhầm thứ thuộc về quá khứ.'],
+   v686_night_watch:['Tôi tăng thêm một vòng phía bắc. Cổng mới mở thì làng cũng phải đổi cách canh.']},
+ 4:{
+   v686_farmer_hoa:['Người đi xa đã quay về. Thế là đường mới thật sự thành đường — không còn chỉ là nét trên bản đồ.'],
+   v686_keeper_van:['Đồ mang từ ngoài về phải ghi riêng. Cô không muốn kho làng biến thành chỗ chất di vật không ai hiểu.'],
+   v686_porter_binh:['Nếu còn chuyến nữa, báo trước. Tôi sẽ để trống lối xe và không chặn đường bằng hàng mới.'],
+   v686_carrier_tin:['Giờ tôi hiểu vì sao kho cũ có tuyến đi về phía rừng. Người trước từng chuẩn bị những chuyến giống thế này.'],
+   v686_night_watch:['Từ khi có người trở về từ thành phố, tôi nhìn đường phía bắc khác hẳn. Đường hai chiều thì phải canh cả hai hướng.']}
+};
+let pulseTimer=0;
+function pulse(title,sub){let e=document.getElementById('hubPulse691');if(!e){e=document.createElement('div');e.id='hubPulse691';document.body.append(e);}e.innerHTML='';e.append(document.createTextNode(title));if(sub){const s=document.createElement('small');s.textContent=sub;e.append(s);}e.classList.add('on');clearTimeout(pulseTimer);pulseTimer=setTimeout(()=>e.classList.remove('on'),4200);}
+function markStage(s){const z=ensure();if(s<=0||z.stageSeen[s])return;z.stageSeen[s]=true;z.lastStage=Math.max(z.lastStage,s);const a=ANNOUNCE[s];if(home()&&a){pulse(a[0],a[1]);try{save();}catch(_){}}}
+function questBusy(n){try{if(typeof npcQuestMarker==='function'&&npcQuestMarker(n))return true;const id=typeof storyCurrent==='function'?storyCurrent():null;if(id&&typeof QM!=='undefined'&&['active','available'].includes(QM.status(id))){if(typeof storyOwner==='function'&&storyOwner(id)===n.id)return true;const a=typeof ADVENTURES!=='undefined'&&ADVENTURES.find(q=>q.id===id),p=a&&typeof adventureStep==='function'?adventureStep(a):null;if(p?.npc===n.id)return true;}}catch(_){}return false;}
+function hubTalk(n){const s=stage(),z=ensure();if(s<=0||!VIEW[n.id]?.[s])return false;const key=n.id+':'+s;if(z.npcSeen[key])return false;z.npcSeen[key]=true;try{save();}catch(_){}say(n.name,VIEW[n.id][s],null,n.id);return true;}
+if(typeof talk==='function'){const prev=talk;talk=function(n){if(CORE.has(n?.id)&&home()&&!questBusy(n)&&hubTalk(n))return;return prev.apply(this,arguments);};}
+function boardPos(){const e=WORLD?.npcs?.find(n=>n.id==='elder');return e?{x:e.x+2.0,y:e.y+.55}:{x:24.5,y:16};}
+function boardLines(){const s=stage(),z=ensure();z.boardReads++;try{save();}catch(_){}if(s<=1)return['Ghi chú chung: không di chuyển các cọc đá, rãnh đá hoặc phiến có dấu cũ nếu chưa báo người phụ trách.','Kho phía bắc vẫn hoạt động bình thường. Tuyến Rừng Tổ hạn chế đi lại khi trời tối.'];if(s===2)return['Thông báo nội bộ: các ký hiệu cũ đang được đối chiếu. Không tự suy diễn hoặc lan truyền tên gọi chưa được xác nhận.','Ai phát hiện dấu mới hãy ghi vị trí trước khi chạm vào vật thể.'];if(s===3)return['Chuẩn bị tuyến dài: hàng đi xa được tập kết riêng tại kho phía bắc.','Người ra khỏi Thanh Mộc qua cổng cổ cần ghi lại tuyến đi và thời điểm dự kiến quay về.'];return['Tuyến Thành Phố Vụn Vỡ đã có người đi và trở về an toàn ít nhất một lần.','Quy ước mới: mọi vật lạ mang về phải được ghi nguồn gốc trước khi chuyển vào kho hoặc lò rèn.'];}
+if(typeof interactables==='function'){const prev=interactables;interactables=function(){const list=prev.apply(this,arguments);if(home()&&stage()>=1){const p=boardPos();list.push({kind:'hubBoard691',x:p.x,y:p.y,reach:1.45,label:'Bảng tin Thanh Mộc',btn:'Đọc'});}return list;};}
+if(typeof interactionHint==='function'){const prev=interactionHint;interactionHint=function(o){if(o?.kind==='hubBoard691')return'Bảng tin Thanh Mộc';return prev.apply(this,arguments);};}
+if(typeof interact==='function'){const prev=interact;interact=function(o){if(o?.kind==='hubBoard691')return say('Bảng tin Thanh Mộc',boardLines());return prev.apply(this,arguments);};}
+function syncAmbient(){const pack=window.VILLAGE_EXPANSION686;if(!pack?.ambient)return;const s=stage(),map=s>=4?AMBIENT[4]:s>=3?AMBIENT[3]:null;if(!map)return;for(const n of pack.ambient){if(map[n.id])n.lines=[...map[n.id]];}}
+function drawBoard(cx,cy,t){if(stage()<1)return;const p=boardPos(),x=p.x*TS-cx,y=p.y*TS-cy,u=TS/16;ctx.save();ctx.imageSmoothingEnabled=false;ctx.fillStyle='#4b3526';ctx.fillRect(x-7*u,y-7*u,14*u,10*u);ctx.fillStyle='#7c5a37';ctx.fillRect(x-6*u,y-6*u,12*u,8*u);ctx.fillStyle='#d8c99b';ctx.fillRect(x-5*u,y-5*u,10*u,6*u);ctx.fillStyle=stage()>=3?'#77bca6':'#b59659';ctx.fillRect(x-4*u,y-4*u,3*u,1*u);ctx.fillRect(x-4*u,y-2*u,7*u,1*u);ctx.fillRect(x-4*u,y,6*u,1*u);ctx.fillStyle='#3c2b21';ctx.fillRect(x-6*u,y+3*u,2*u,8*u);ctx.fillRect(x+4*u,y+3*u,2*u,8*u);if(stage()>=4){const glow=.14+.05*Math.sin(t*2.2);ctx.globalAlpha=glow;ctx.fillStyle='#8de1d0';ctx.fillRect(x-6*u,y-7*u,12*u,10*u);}ctx.restore();}
+function drawHubProps(cx,cy,t){const s=stage();ctx.save();ctx.imageSmoothingEnabled=false;const box=(x,y)=>{x=x*TS-cx;y=y*TS-cy;ctx.fillStyle='#68472e';ctx.fillRect(x-TS*.28,y-TS*.20,TS*.56,TS*.4);ctx.fillStyle='#a77a47';ctx.fillRect(x-TS*.24,y-TS*.15,TS*.48,TS*.08);};if(s>=3){box(24.6,-7.4);box(26.0,-7.4);box(29.2,-10.8);ctx.strokeStyle='rgba(113,203,179,.6)';ctx.lineWidth=Math.max(2,TS*.05);ctx.beginPath();ctx.moveTo(23.8*TS-cx,-8.1*TS-cy);ctx.lineTo(30.2*TS-cx,-8.1*TS-cy);ctx.stroke();}if(s>=4){const x=23.5*TS-cx,y=14.3*TS-cy,p=.5+.5*Math.sin(t*2);ctx.fillStyle='rgba(103,202,185,'+(.12+.08*p)+')';ctx.beginPath();ctx.arc(x,y,TS*.42,0,Math.PI*2);ctx.fill();ctx.fillStyle='#a9d8c9';ctx.fillRect(x-TS*.12,y-TS*.12,TS*.24,TS*.24);}ctx.restore();}
+if(typeof drawWorld==='function'){const prev=drawWorld;drawWorld=function(t){const r=prev.apply(this,arguments);if(home()){const [cx,cy]=cam();drawHubProps(cx,cy,t);drawBoard(cx,cy,t);}return r;};}
+let lastRealm=String(S?.realm640||HOME),syncT=0;
+function sync(dt=0){const z=ensure(),realm=String(S?.realm640||HOME);if(realm==='city682'&&!z.visitedCity){z.visitedCity=true;z.pendingCityReturn=true;try{save();}catch(_){}}
+ if(lastRealm==='city682'&&realm!== 'city682'&&z.visitedCity)z.pendingCityReturn=true;
+ if(z.pendingCityReturn&&inVillageCore()&&!z.returnedFromCity){z.pendingCityReturn=false;z.returnedFromCity=true;pulse(ANNOUNCE[4][0],ANNOUNCE[4][1]);try{save();}catch(_){}}
+ lastRealm=realm;syncT+=Number(dt)||0;if(syncT>.35){syncT=0;const s=stage();markStage(s);syncAmbient();z.lastStage=Math.max(z.lastStage,s);}}
+if(typeof update==='function'){const prev=update;update=function(dt){const r=prev.apply(this,arguments);sync(dt);return r;};}
+if(typeof newState==='function'){const prev=newState;newState=function(){const out=prev.apply(this,arguments);ensure(out);return out;};}
+if(typeof captureState==='function'){const prev=captureState;captureState=function(){syncAmbient();const z=ensure();const out=prev.apply(this,arguments);if(out){out.hub691=JSON.parse(JSON.stringify(z));out.villageExpansion684={...(out.villageExpansion684||{}),phase:8,version:V};}return out;};}
+if(typeof normalizeState==='function'){const prev=normalizeState;normalizeState=function(raw){const out=prev.apply(this,arguments);if(raw?.hub691&&typeof raw.hub691==='object')out.hub691={...blank(),...raw.hub691,stageSeen:{...(raw.hub691.stageSeen||{})},npcSeen:{...(raw.hub691.npcSeen||{})}};ensure(out);return out;};}
+if(typeof restoreSession==='function'){const prev=restoreSession;restoreSession=function(){const r=prev.apply(this,arguments);ensure(S);lastRealm=String(S?.realm640||HOME);syncAmbient();version691();return r;};}
+function version691(){try{CFG.version=V}catch(_){}try{if(typeof HTCT!=='undefined')HTCT.version=V}catch(_){}try{if(S?.v320)S.v320.patchVersion=V}catch(_){}document.title='Hành Trình Cổ Thư — v'+V;document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+V);const d=document.querySelector('#devHeader678 b');if(d)d.textContent='Developer Toolbox · v'+V;}
+ensure();syncAmbient();version691();window.VILLAGE_PHASE8_691={phase:8,version:V,stage,ensure,viewpoints:VIEW,ambient:AMBIENT,boardLines,get state(){return JSON.parse(JSON.stringify(ensure()))},markCityVisited(){const z=ensure();z.visitedCity=true;z.pendingCityReturn=true;}};requestAnimationFrame(()=>{version691();syncAmbient();markStage(stage());});
 })();
 </script>
 
