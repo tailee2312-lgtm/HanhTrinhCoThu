@@ -21999,5 +21999,97 @@ version();requestAnimationFrame(version);
 })();
 
 </script>
+
+<style id="v6981-mobile-ui-remaster">
+:root{--m981-scale:1;--m981-opacity:.94;--m981-spread:1}
+body[data-mobile-hud695="1"] #mobileUtility695{top:max(6px,calc(var(--m695-safe-t) + 2px))!important;right:max(6px,var(--m695-safe-r))!important}
+body[data-mobile-hud695="1"] #mobileUtilityTray695{gap:8px!important}
+body[data-mobile-hud695="1"] #mobileUtilityTray695>button,
+body[data-mobile-hud695="1"] #mobileUtilityToggle695{opacity:var(--m981-opacity)!important}
+body[data-mobile-hud695="1"] #minimap{width:84px!important;height:84px!important;max-width:84px!important;max-height:84px!important;right:calc(var(--m695-safe-r) + 2px)!important;top:calc(var(--m695-safe-t) + 58px)!important;opacity:.97!important}
+body[data-mobile-hud695="1"] #envIndicator{top:calc(var(--m695-safe-t) + 147px)!important;right:calc(var(--m695-safe-r) + 22px)!important;opacity:.95!important}
+body[data-mobile-hud695="1"] #hint{max-width:min(46vw,300px)!important;bottom:calc(var(--m695-safe-b) + 132px)!important;font-size:14px!important;line-height:1.28!important;padding:8px 10px!important;background:rgba(8,23,26,.74)!important;border-color:rgba(228,212,156,.45)!important;backdrop-filter:blur(8px)!important}
+body[data-mobile-hud695="1"] #joy,
+body[data-mobile-hud695="1"] #act,
+body[data-mobile-hud695="1"] #run,
+body[data-mobile-hud695="1"] #playerSkillHud693 button,
+body[data-mobile-hud695="1"] #mobileUtilityTray695>button,
+body[data-mobile-hud695="1"] #mobileUtilityToggle695{transition:transform .16s ease,filter .16s ease,opacity .16s ease,box-shadow .16s ease!important}
+body[data-mobile-hud695="1"] :is(#joy,#act,#run,#playerSkillHud693 button):active{transform:scale(.96)!important}
+body[data-mobile-hud695="1"] #joy{opacity:calc(var(--m981-opacity) - .10)!important;box-shadow:inset 0 0 18px rgba(142,224,192,.10),0 6px 18px rgba(0,0,0,.28)!important;border:1px solid rgba(236,216,155,.42)!important}
+body[data-mobile-hud695="1"] #act,
+body[data-mobile-hud695="1"] #run,
+body[data-mobile-hud695="1"] #playerSkillHud693 button{opacity:var(--m981-opacity)!important;color:transparent!important;font-size:0!important;overflow:hidden!important}
+body[data-mobile-hud695="1"] #act{border:2px solid rgba(241,214,145,.92)!important;background:radial-gradient(circle at 34% 25%,rgba(204,247,230,.26),rgba(17,55,58,.96) 74%)!important;box-shadow:inset 0 0 22px rgba(142,224,192,.16),0 8px 22px rgba(0,0,0,.34),0 0 0 2px rgba(255,255,255,.04)!important}
+body[data-mobile-hud695="1"] #act.ready{box-shadow:inset 0 0 24px rgba(142,224,192,.18),0 0 18px rgba(133,222,171,.22),0 8px 22px rgba(0,0,0,.34)!important}
+body[data-mobile-hud695="1"] #act::before{content:"";position:absolute;inset:17px;background:center/contain no-repeat var(--m981-act-icon,var(--m695-attack-icon));filter:drop-shadow(0 2px 2px rgba(0,0,0,.48))}
+body[data-mobile-hud695="1"] #act .ctlGlyph,
+body[data-mobile-hud695="1"] #act .ctlMini,
+body[data-mobile-hud695="1"] #act .ctlSub,
+body[data-mobile-hud695="1"] #act .attackMeta,
+body[data-mobile-hud695="1"] #run>*{display:none!important}
+body[data-mobile-hud695="1"] #run{border:1px solid rgba(235,221,164,.76)!important;background:radial-gradient(circle at 34% 25%,rgba(222,246,236,.18),rgba(18,47,50,.90) 76%)!important;box-shadow:inset 0 0 14px rgba(142,224,192,.10),0 5px 14px rgba(0,0,0,.28)!important}
+body[data-mobile-hud695="1"] #run::before{content:"";position:absolute;inset:10px;background:center/contain no-repeat var(--m695-run-icon);filter:drop-shadow(0 2px 2px rgba(0,0,0,.45))}
+body[data-mobile-hud695="1"] #playerSkillHud693{right:0!important;bottom:0!important;width:260px!important;height:220px!important;pointer-events:none!important;z-index:36!important}
+body[data-mobile-hud695="1"] #playerSkillHud693 button{border:1px solid rgba(236,216,155,.82)!important;background-color:rgba(18,49,48,.92)!important;background-image:var(--skill-icon695)!important;background-repeat:no-repeat!important;background-position:center!important;background-size:34px 34px!important;box-shadow:inset 0 0 15px rgba(142,224,192,.12),0 5px 16px rgba(0,0,0,.28)!important}
+body[data-mobile-hud695="1"] #playerSkillHud693 button>b,
+body[data-mobile-hud695="1"] #playerSkillHud693 button>small,
+body[data-mobile-hud695="1"] #playerSkillHud693 button>i{display:none!important}
+body[data-mobile-hud695="1"] #playerSkillHud693 button.cooling>i{display:grid!important;place-items:center!important;position:absolute!important;inset:0!important;margin:0!important;padding:0!important;background:rgba(4,17,19,.58)!important;color:#fff4d1!important;font:800 12px/1 UIVietnamFallback,sans-serif!important;text-align:center!important;white-space:nowrap!important}
+body[data-mobile-hud695="1"] #playerSkillHud693 button::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1px solid rgba(255,255,255,.06);pointer-events:none}
+body[data-mobile-hud695="1"] #playerSkillHud693 button.ready981{box-shadow:inset 0 0 16px rgba(155,236,206,.16),0 0 16px rgba(112,217,139,.16),0 5px 16px rgba(0,0,0,.28)!important}
+body[data-mobile-hud695="1"] #m981HudSection h3{margin:12px 0 8px;font:700 16px/1.2 var(--display);color:#f2e7bf}
+body[data-mobile-hud695="1"] #m981HudSection .sub{margin:0 0 10px;font-size:12px;line-height:1.35;color:#dbe7da}
+body[data-mobile-hud695="1"] #m981HudSection .row{align-items:center!important}
+body[data-mobile-hud695="1"] #m981HudSection input[type=range]{flex:1;min-width:120px}
+body[data-mobile-hud695="1"] #m981HudSection output{min-width:56px;text-align:right;color:#f5edcf;font-weight:700}
+@media (max-height:420px){
+  body[data-mobile-hud695="1"] #minimap{width:78px!important;height:78px!important;max-width:78px!important;max-height:78px!important}
+  body[data-mobile-hud695="1"] #envIndicator{top:calc(var(--m695-safe-t) + 138px)!important}
+  body[data-mobile-hud695="1"] #hint{bottom:calc(var(--m695-safe-b) + 118px)!important;font-size:13px!important}
+}
+</style>
+<script id="v6981-mobile-ui-remaster">(()=>{'use strict';
+const V='6.98.1';
+const KEY='htct-mobile-hud-6981';
+const defaults={scale:100,opacity:94,spread:100};
+let cfg={...defaults};
+try{const raw=JSON.parse(localStorage.getItem(KEY)||'null');if(raw){cfg.scale=Math.max(80,Math.min(120,Number(raw.scale)||defaults.scale));cfg.opacity=Math.max(60,Math.min(100,Number(raw.opacity)||defaults.opacity));cfg.spread=Math.max(85,Math.min(130,Number(raw.spread)||defaults.spread));}}catch(_){ }
+const svg=(body,view='0 0 64 64')=>'url("data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${view}" fill="none" stroke="#F6EDD1" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`).replace(/'/g,'%27')+'")';
+const fillsvg=(body,view='0 0 64 64')=>'url("data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${view}" fill="#F6EDD1">${body}</svg>`).replace(/'/g,'%27')+'")';
+const icons={
+ attack:svg('<path d="M45 9 24 30l-7-1-5 5 10 10 5-5-1-7L47 11z"/><path d="m18 42-7 11M11 46l7 7"/>'),
+ talk:svg('<path d="M10 13h44v29H31L20 51v-9H10z"/><path d="M21 25h2M31 25h2M41 25h2"/><path d="M23 33h18"/>'),
+ feed:svg('<path d="M11 30c0-7 7-12 14-12 2-5 7-8 13-8 9 0 16 7 16 16 0 10-8 18-18 18-3 0-6-1-8-2-3 3-7 5-12 5-8 0-14-6-14-14 0-2 0-2 1-3z"/><path d="M28 31c3 1 6 1 9 0"/>'),
+ hand:svg('<path d="M21 30v-8c0-2 2-4 4-4s4 2 4 4v8"/><path d="M29 30V18c0-2 2-4 4-4s4 2 4 4v12"/><path d="M37 30v-9c0-2 2-4 4-4s4 2 4 4v14c0 10-7 17-16 17-11 0-18-8-18-19v-7c0-2 2-4 4-4s4 2 4 4v4"/>'),
+ chest:svg('<path d="M11 25h42v24H11z"/><path d="M18 25v-6c0-4 3-7 7-7 4 0 7 3 7 7v6"/><path d="M32 25v-6c0-4 3-7 7-7 4 0 7 3 7 7v6"/><path d="M32 25v24"/><path d="M28 37h8"/>'),
+ pickup:svg('<path d="M32 8 51 25 32 55 13 25z"/><path d="M32 18v15"/><path d="M25 27l7 7 7-7"/>'),
+ use:svg('<path d="M14 16h36v32H14z"/><path d="M23 26h18M23 34h18"/><path d="M43 14v6M20 14v6"/>'),
+ altar:svg('<path d="M17 19h30"/><path d="M22 19v10M42 19v10"/><path d="M16 29h32"/><path d="M22 29v14M42 29v14"/><path d="M14 43h36"/><path d="M28 8h8M32 8v8"/>')
+ };
+ function qs(s,r=document){return r.querySelector(s)}
+ function qsa(s,r=document){return [...r.querySelectorAll(s)]}
+ function active(){return document.body?.dataset?.mobileHud695==='1'}
+ function save(){try{localStorage.setItem(KEY,JSON.stringify(cfg))}catch(_){}}
+ function apply(){document.documentElement.style.setProperty('--m981-scale',(cfg.scale/100).toFixed(2));document.documentElement.style.setProperty('--m981-opacity',(cfg.opacity/100).toFixed(2));document.documentElement.style.setProperty('--m981-spread',(cfg.spread/100).toFixed(2));syncValues();layout();save();}
+ function syncValues(){const m={m981ScaleVal:cfg.scale+'%',m981OpacityVal:cfg.opacity+'%',m981SpreadVal:cfg.spread+'%'};Object.entries(m).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val,el.textContent=val});['m981Scale','m981Opacity','m981Spread'].forEach(id=>{const el=document.getElementById(id);if(el&&!el.matches(':focus'))el.value=String(cfg[id.replace('m981','').toLowerCase()]||cfg[id.slice(4).toLowerCase()]||defaults.scale)})}
+ function installSettings(){const panel=qs('#settings .panel');if(!panel||qs('#m981HudSection'))return;const sect=document.createElement('section');sect.id='m981HudSection';sect.innerHTML=`<h3>HUD mobile ngang</h3><p class="sub">Tối ưu cho màn hình ngang: icon rõ, cụm chiêu kiểu MOBA và không che phần chơi.</p><div class="row"><label for="m981Scale">Kích cỡ HUD mobile</label><input id="m981Scale" type="range" min="80" max="120" step="1"><output id="m981ScaleVal"></output></div><div class="row"><label for="m981Opacity">Độ rõ nút</label><input id="m981Opacity" type="range" min="60" max="100" step="1"><output id="m981OpacityVal"></output></div><div class="row"><label for="m981Spread">Độ mở cụm kỹ năng</label><input id="m981Spread" type="range" min="85" max="130" step="1"><output id="m981SpreadVal"></output></div>`;
+ const anchor=qs('#settings .patch')||panel.lastElementChild; panel.appendChild(sect);
+ [['m981Scale','scale'],['m981Opacity','opacity'],['m981Spread','spread']].forEach(([id,key])=>{const el=document.getElementById(id);if(!el)return;el.value=cfg[key];el.addEventListener('input',e=>{cfg[key]=Number(e.target.value)||defaults[key];apply()})});syncValues();}
+ function safePx(name,fallback=0){const v=getComputedStyle(document.body).getPropertyValue(name).trim();const n=parseFloat(v);return Number.isFinite(n)?n:fallback}
+ function place(el,right,bottom,size){if(!el)return;Object.assign(el.style,{right:right+'px',bottom:bottom+'px',width:size+'px',height:size+'px',minWidth:size+'px',minHeight:size+'px'})}
+ function pickIcon(){const act=qs('#act');if(!act)return icons.attack;const txt=((act.textContent||'')+' '+(qs('#hint')?.textContent||'')).toLowerCase(); if(/cho ăn|thức ăn|heo|boar/.test(txt))return icons.feed; if(/nói chuyện|giao|nhân vật|trả nhiệm vụ|nhiệm vụ|thanh thanh|mộc|mai tâm|đức tư|an kha|sơn mộc|lão/.test(txt))return icons.talk; if(/rương|mở rương|chìa khóa/.test(txt))return icons.chest; if(/nhặt|thu thập|lấy vật phẩm|mảnh thư/.test(txt))return icons.pickup; if(/kích hoạt|đặt dấu|phong ấn|altar|đài phun|dịch chuyển|cổng|xem|đọc|mở|dùng|triệu hồi/.test(txt))return /đọc|xem/.test(txt)?icons.use:icons.altar; return icons.attack; }
+ function layout(){if(!active())return; const body=document.body, scale=cfg.scale/100, spread=cfg.spread/100, safeR=safePx('--m695-safe-r',0), safeB=safePx('--m695-safe-b',0), safeL=safePx('--m695-safe-l',0); const joy=qs('#joy'), act=qs('#act'), run=qs('#run'), hud=qs('#playerSkillHud693'); if(joy){const js=Math.round(102*scale), knob=qs('#knob'); Object.assign(joy.style,{left:(safeL+8)+'px',bottom:(safeB+8)+'px',width:js+'px',height:js+'px',minWidth:js+'px',minHeight:js+'px'}); if(knob){const ks=Math.round(44*scale);Object.assign(knob.style,{width:ks+'px',height:ks+'px',marginLeft:(-ks/2)+'px',marginTop:(-ks/2)+'px'})}} if(!act||!run||!hud)return; const actSize=Math.round(86*scale), runSize=Math.round(48*scale), skillSize=Math.round(56*scale), baseR=safeR+10, baseB=safeB+10; place(act,baseR,baseB,actSize); act.style.setProperty('--m981-act-icon',pickIcon()); const centerR=baseR+actSize/2, centerB=baseB+actSize/2; const buttons=qsa('#playerSkillHud693 button[data-slot]'); const pos=[[-72*scale*spread,58*scale*spread],[-4*scale*spread,92*scale*spread],[-126*scale*spread,10*scale*spread]]; buttons.forEach((b,i)=>{const [dx,dy]=pos[Math.min(i,1)]; const r=Math.round(centerR - dx - skillSize/2), bt=Math.round(centerB + dy - skillSize/2); place(b,r,bt,skillSize); b.classList.toggle('ready981',!b.classList.contains('cooling'))}); const runDx=-118*scale*spread, runDy=8*scale; place(run,Math.round(centerR - runDx - runSize/2),Math.round(centerB + runDy - runSize/2),runSize); hud.style.width=Math.round(280*scale)+'px'; hud.style.height=Math.round(230*scale)+'px';}
+ function wrap(fn,name){if(typeof fn!=='function')return null; return function(...a){const r=fn.apply(this,a); if(name==='update'){ const act=qs('#act'); if(act&&active())act.style.setProperty('--m981-act-icon',pickIcon()); layout(); } else { requestAnimationFrame(()=>{installSettings();layout();}); } return r; }}
+ if(typeof openSettings==='function') openSettings=wrap(openSettings,'openSettings');
+ if(typeof renderHud==='function') renderHud=wrap(renderHud,'renderHud');
+ if(typeof update==='function') update=wrap(update,'update');
+ if(typeof enterGame==='function') enterGame=wrap(enterGame,'enterGame');
+ if(typeof restoreSession==='function') restoreSession=wrap(restoreSession,'restoreSession');
+ const mo=new MutationObserver(()=>{installSettings();layout()}); mo.observe(document.documentElement,{childList:true,subtree:true});
+ function version(){try{CFG.version=V}catch(_){} try{if(typeof HTCT!=='undefined')HTCT.version=V}catch(_){} try{if(S?.v320)S.v320.patchVersion=V}catch(_){} document.title='Hành Trình Cổ Thư — v'+V; document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+V)}
+ installSettings(); apply(); version(); requestAnimationFrame(()=>{installSettings();layout();version()}); addEventListener('resize',()=>requestAnimationFrame(layout),{passive:true});
+})();</script>
+
 </body>
 </html>
