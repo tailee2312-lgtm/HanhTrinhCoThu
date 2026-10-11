@@ -21803,5 +21803,178 @@ setVersion();setTimeout(setVersion,1500);setTimeout(setVersion,3350);
 })();
 
 </script>
+
+<style id="boss-focus-1004">
+/* Boss Focus: affect only top HUD chrome. Controls at bottom and boss bars are untouched. */
+#bossFocusExit1004{display:none}
+html body.bossFocus1004 #playerHud,
+html body.bossFocus1004 #orbitDock622,
+html body.bossFocus1004 #avatarRadial624,
+html body.bossFocus1004 #questBox,
+html body.bossFocus1004 #resourceHud623,
+html body.bossFocus1004 #environmentHud625,
+html body.bossFocus1004 #minimap,
+html body.bossFocus1004 #envIndicator,
+html body.bossFocus1004 #ui690Tools,
+html body.bossFocus1004 #quickDock100,
+html body.bossFocus1004 #btnMenu,
+html body.bossFocus1004 #btnBag,
+html body.bossFocus1004 #coinsMini,
+html body.bossFocus1004 #mobileQuickDock699,
+html body.bossFocus1004 #mobileUtility695,
+html body.bossFocus1004 #mobileHudMenu6540,
+html body.bossFocus1004 #environmentHud625,
+html body.bossFocus1004 #hudEditor6550,
+html body.bossFocus1004 #uiLightQuestToggle,
+html body.bossFocus1004 #quickToggle100{
+  opacity:0!important;
+  pointer-events:none!important;
+  transition:opacity .25s ease,translate .25s ease!important;
+  translate:0 -10px!important;
+}
+/* Fade back from original coordinates; never overwrite imported mobile HUD geometry. */
+html body:not(.bossFocus1004) #playerHud,
+html body:not(.bossFocus1004) #orbitDock622,
+html body:not(.bossFocus1004) #questBox,
+html body:not(.bossFocus1004) #resourceHud623,
+html body:not(.bossFocus1004) #environmentHud625,
+html body:not(.bossFocus1004) #quickDock100{
+ transition:opacity .30s ease,translate .30s ease!important;
+}
+html body.bossFocusHidden1004 #playerHud,
+html body.bossFocusHidden1004 #orbitDock622,
+html body.bossFocusHidden1004 #avatarRadial624,
+html body.bossFocusHidden1004 #questBox,
+html body.bossFocusHidden1004 #resourceHud623,
+html body.bossFocusHidden1004 #environmentHud625,
+html body.bossFocusHidden1004 #minimap,
+html body.bossFocusHidden1004 #envIndicator,
+html body.bossFocusHidden1004 #ui690Tools,
+html body.bossFocusHidden1004 #quickDock100,
+html body.bossFocusHidden1004 #mobileQuickDock699,
+html body.bossFocusHidden1004 #mobileUtility695{visibility:hidden!important}
+/* One small and readable escape label; original confirmation dialog retained. */
+html body #leaveFight659{
+ display:none;
+ position:fixed!important;
+ top:calc(11px + env(safe-area-inset-top))!important;
+ left:calc(12px + env(safe-area-inset-left))!important;
+ right:auto!important;
+ bottom:auto!important;
+ width:auto!important;height:auto!important;
+ max-width:none!important;min-width:0!important;min-height:0!important;
+ padding:7px 8px!important;margin:0!important;
+ font:500 13px/1.25 var(--body, sans-serif)!important;
+ letter-spacing:.02em!important;
+ color:#fff!important;
+ text-shadow:0 1px 4px #001c20!important;
+ background:transparent!important;
+ border:0!important;border-radius:0!important;
+ box-shadow:none!important;outline-offset:3px!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ text-transform:none!important;
+ transform:none!important;filter:none!important;
+ animation:none!important;
+ z-index:100002!important;
+ cursor:pointer;pointer-events:auto!important;
+ white-space:nowrap!important;
+}
+html body #leaveFight659::before,html body #leaveFight659::after{display:none!important;content:none!important}
+html body #leaveFight659:hover{color:#fff!important;text-decoration:underline;text-underline-offset:3px}
+html body #leaveFight659:focus-visible{outline:2px solid #fff8!important}
+html body.bossFocus1004:not(.cinemaPlaying960) #leaveFight659{display:block!important}
+html body.cinemaPlaying960 #leaveFight659{display:none!important;pointer-events:none!important}
+@media(max-width:640px){html body #leaveFight659{font-size:12px!important;top:calc(6px + env(safe-area-inset-top))!important;left:calc(6px + env(safe-area-inset-left))!important}}
+@media(prefers-reduced-motion:reduce){html body.bossFocus1004 #playerHud,html body.bossFocus1004 #orbitDock622,html body.bossFocus1004 #environmentHud625{transition:none!important}}
+</style>
+<script id="boss-focus-1004-script">(()=>{'use strict';
+const V='6.100.4',body=document.body;
+const btn=document.getElementById('leaveFight659');
+const modal=document.getElementById('leaveBoss659');
+const stay=document.getElementById('stay659'),exit=document.getElementById('exit659');
+const originalOpen=btn?.onclick,originalStay=stay?.onclick,originalExit=exit?.onclick;
+let forestConfirm=false,focus=false,pendingHide=0,holdUntil=0;
+const topHudIds=['playerHud','orbitDock622','avatarRadial624','questBox','resourceHud623','environmentHud625','minimap','envIndicator','ui690Tools','quickDock100','btnMenu','btnBag','mobileQuickDock699','mobileUtility695','mobileHudMenu6540','hudEditor6550','uiLightQuestToggle','quickToggle100'];
+const prior=new Map();
+function forceHidden(){
+ for(const id of topHudIds){const el=document.getElementById(id);if(!el)continue;
+  if(!prior.has(el))prior.set(el,{opacity:[el.style.getPropertyValue('opacity'),el.style.getPropertyPriority('opacity')],visibility:[el.style.getPropertyValue('visibility'),el.style.getPropertyPriority('visibility')]});
+  if(el.style.getPropertyValue('opacity')!=='0'||el.style.getPropertyPriority('opacity')!=='important')el.style.setProperty('opacity','0','important');
+  if(body.classList.contains('bossFocusHidden1004')&&el.style.getPropertyValue('visibility')!=='hidden')el.style.setProperty('visibility','hidden','important');
+ }
+}
+function restoreHud(){for(const[el,s]of prior){for(const prop of ['opacity','visibility']){const [v,priority]=s[prop];if(v)el.style.setProperty(prop,v,priority);else el.style.removeProperty(prop)}}prior.clear()}
+
+const time=()=>performance.now();
+const rootsCombat=()=>!!(window._inPlay&&S?.realm640==='roots'&&window.BOSS_SYSTEM652?.battle?.active);
+const forestCombat=()=>!!(window._inPlay&&document.body.classList.contains('forestFight681')&&S?.realm640==='home');
+function restoreForestDialog(){
+ if(!modal)return;
+ const title=modal.querySelector('h2'),desc=modal.querySelector('p');
+ if(title)title.textContent='Rời giao tranh?';
+ if(desc)desc.textContent='Boss sẽ hồi đầy máu và lính triệu hồi sẽ biến mất. Tiến độ kích hoạt altar được giữ nguyên.';
+ if(exit)exit.textContent='Rời trận';
+ if(stay){stay.onclick=originalStay;stay.textContent='Ở lại'}
+ if(exit)exit.onclick=originalExit;
+}
+function closeForest(){forestConfirm=false;modal?.classList.remove('on');restoreForestDialog()}
+function leaveForest(){
+ const f=window.FOREST681;
+ if(!f||S.realm640!=='home'){closeForest();return}
+ const boss=f.actors?.find(a=>a.forestBoss681);
+ if(boss&&!boss.dead){boss.hp=boss.maxHp;boss.phase=1;boss.x=boss.homeX;boss.y=boss.homeY;boss.cd=1.8;boss.skill=null;boss.summoned=false;boss.dying=false;boss.state='idle';boss.attackHitPending=false;boss.hitPending659=false;}
+ for(const a of f.actors||[])if(a.summoned681)a.dead=true;
+ P.x=52;P.y=-36;P.moving=false;P.running=false;P.vx=0;P.vy=0;P.meleeHitPending=false;
+ Camera.reset(P.x,P.y);
+ try{resetInput()}catch(_){}
+ closeForest();
+ body.classList.remove('forestFight681');
+ holdUntil=0;
+ try{save()}catch(_){}
+}
+function openForest(){
+ if(!forestCombat()||!modal)return;
+ forestConfirm=true;
+ const title=modal.querySelector('h2'),desc=modal.querySelector('p');
+ if(title)title.textContent='Thoát Ải?';
+ if(desc)desc.textContent='Trở về lối rừng. Hoa Chúa sẽ được hồi phục để bạn có thể thử lại.';
+ if(exit){exit.textContent='Thoát Ải';exit.onclick=leaveForest}
+ if(stay){stay.textContent='Ở lại';stay.onclick=closeForest}
+ modal.classList.add('on');stay?.focus();
+}
+if(btn){btn.classList.remove('btn');btn.textContent='Thoát Ải';btn.setAttribute('aria-label','Thoát Ải');
+ // Original Liquid Glass styles are declared in important cascade layers;
+ // inline important overrides are required for a genuinely borderless text link.
+ for(const[prop,value]of Object.entries({'background':'transparent','background-image':'none','border':'0','border-width':'0','border-style':'none','border-radius':'0','box-shadow':'none','text-shadow':'0 1px 4px #001c20','backdrop-filter':'none','-webkit-backdrop-filter':'none','font-size':'13px','font-weight':'500','line-height':'1.25','color':'#ffffff','appearance':'none','min-width':'0','min-height':'0'}))btn.style.setProperty(prop,value,'important');
+
+ btn.onclick=()=>forestCombat()?openForest():originalOpen?.call(btn);
+}
+// Existing ESC in Goblin's battle stays authoritative. Add ESC only for Hoa Chúa.
+window.addEventListener('keydown',e=>{
+ if(e.key!=='Escape'||!forestCombat()||window.CINEMA960?.active)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ forestConfirm?closeForest():openForest();
+},true);
+const updateBase=update;
+update=function(dt){
+ if(forestConfirm)return;
+ const result=updateBase.apply(this,arguments);
+ const root=rootsCombat(),woods=forestCombat(),dying=!!window.BOSS_DEATH980?.waiting;
+ const cinema=!!window.CINEMA960?.active;
+ if(root||woods||dying||(focus&&cinema)){holdUntil=time()+350}
+ const active=(root||woods||dying||(focus&&cinema)||(focus&&time()<holdUntil))&&!(!window._inPlay);
+ if(active!==focus){
+  focus=active;body.classList.toggle('bossFocus1004',active);
+  if(active){clearTimeout(pendingHide);forceHidden();pendingHide=setTimeout(()=>{if(focus){body.classList.add('bossFocusHidden1004');forceHidden()}},260)}
+  else{clearTimeout(pendingHide);body.classList.remove('bossFocusHidden1004');restoreHud();if(forestConfirm)closeForest()}
+ }
+ if(focus)forceHidden();
+ return result;
+};
+function version(){try{CFG.version=V;if(typeof HTCT!=='undefined')HTCT.version=V;if(S?.v320)S.v320.patchVersion=V}catch(_){}document.title='Hành Trình Cổ Thư — v'+V;document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+V)}
+version();requestAnimationFrame(version);
+window.BOSS_FOCUS1004={sync:()=>update(0),get active(){return focus},get forestConfirm(){return forestConfirm}};
+})();</script>
+
 </body>
 </html>
