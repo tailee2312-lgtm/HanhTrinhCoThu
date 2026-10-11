@@ -21509,10 +21509,10 @@ html body[data-mobile-hud100="1"][data-portrait100="1"] #rotateNotice100{display
 </style>
 <script id="v61000-clean-hud">
 (()=>{'use strict';
-const VER='6.100.0';
+const VER='6.100.3';
 const $=id=>document.getElementById(id);
 const media=matchMedia('(pointer: coarse)');
-const isMobile=()=>media.matches&&Math.min(innerWidth,innerHeight)<850;
+const isMobile=()=>media.matches&&innerWidth>innerHeight&&Math.min(innerWidth,innerHeight)<850;
 const svgParts={menu:'<circle cx="32" cy="32" r="4"/><circle cx="14" cy="32" r="4"/><circle cx="50" cy="32" r="4"/>',paw:'<path d="M22 30q10-13 20 0l8 11q7 11-5 13-6 0-13-5-7 5-13 5-12-2-5-13z"/><circle cx="16" cy="25" r="4"/><circle cx="26" cy="17" r="4"/><circle cx="39" cy="17" r="4"/><circle cx="49" cy="25" r="4"/>',bag:'<path d="M13 24h38l3 31H10zM22 24V17a10 10 0 0 1 20 0v7"/><path d="M24 37h16"/>',book:'<path d="M6 13h23q6 0 6 7v33q-3-5-9-5H6zM58 13H35q-6 0-6 7v33q3-5 9-5h20z"/>',story:'<path d="M15 8h32l9 10v39H15zM47 8v11h9M23 29h26M23 39h26"/>',settings:'<circle cx="32" cy="32" r="10"/><path d="M32 4v11m0 34v11M4 32h11m34 0h11M12 12l8 8m24 24 8 8m0-40-8 8M20 44l-8 8"/>',quest:'<path d="M13 12h38v42H13zM21 24h22M21 33h22M21 42h13"/>',sword:'<path d="M45 7 24 28l-6-1-6 6 9 9 6-6-1-6L47 9zM20 40 9 51m4-12 13 13"/>',talk:'<path d="M10 12h44v33H30L19 54v-9H10z"/><path d="M20 26h4m7 0h4m7 0h4"/>',feed:'<path d="M20 12a10 10 0 0 0-8 16l-5 7 7 7 7-5a10 10 0 0 0 13-5l10-12a8 8 0 0 0-12-12L20 20"/>',chest:'<rect x="9" y="24" width="46" height="28" rx="3"/><path d="M9 31h46M23 24V12h18v12M29 37h6v8h-6z"/>',pickup:'<path d="M17 30V19a4 4 0 0 1 8 0v9m0-10a4 4 0 0 1 8 0v11m0-10a4 4 0 0 1 8 0v10m0-10a4 4 0 0 1 8 0v12c0 12-8 19-19 19h-3C19 54 12 43 12 34a5 5 0 0 1 5-4z"/>',magic:'<path d="M31 4 45 23l-7 1 6 13-13 23-13-23 6-13-7-1z"/>',run:'<circle cx="37" cy="12" r="6"/><path d="m31 22-12 11 11 4 6 15m-15-17-13 13m23-26 11 13 12 1"/>'};
 const icon=name=>`<svg viewBox="0 0 64 64" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">${svgParts[name]}</svg>`;
 const iconData=name=>`url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#f7ead0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">'+svgParts[name]+'</svg>')}")`;
@@ -21563,15 +21563,15 @@ function enforceFrame(force=false){const useMobile=isMobile();const target=useMo
   M('playerSkillHud693',{display:'none',visibility:'hidden'});
  }
 }
-function presentation(playing){if(!isMobile())return;const show=!!playing;const h=show?'block':'none';M('touch',{display:h});M('orbitDock622',{display:h});M('environmentHud625',{display:h});M('joy',{display:h});M('act',{display:show?'grid':'none'});M('run',{display:show?'grid':'none'});M('skillHud970',{display:show?'contents':'none'});if(!show){const glyph=$('actionGlyph100');if(glyph)glyph.style.display='none'}}
+function presentation(playing){if(!isMobile())return;const show=!!playing;const h=show?'block':'none';M('touch',{display:h});M('orbitDock622',{display:h});M('environmentHud625',{display:h});M('joy',{display:h});M('act',{display:show?'grid':'none'});M('run',{display:show?'grid':'none'});M('skillHud970',{display:show?'contents':'none'});if(!show){const glyph=$('actionGlyph100');if(glyph)glyph.style.display='none'}else if(window.HUD_EDITOR1001)requestAnimationFrame(()=>window.HUD_EDITOR1001?.apply({recapture:true}));}
 
 function forceActionIcon(){const btn=$('act');if(!btn)return;let a=$('actionGlyph100');if(!a){a=document.createElement('span');a.id='actionGlyph100';document.body.append(a)}const ico=actionIcon();if(a.dataset.icon!==ico){a.dataset.icon=ico;a.innerHTML=icon(ico)}const r=btn.getBoundingClientRect(),side=Math.round(Math.min(r.width,r.height)*.53),x=Math.round(r.x+(r.width-side)/2),y=Math.round(r.y+(r.height-side)/2);if(isMobile()&&!!window._inPlay&&!!window._hasSession&&r.width>1){a.style.display='grid';if(a.dataset.position!==x+','+y+','+side){a.dataset.position=x+','+y+','+side;Object.assign(a.style,{position:'fixed',left:x+'px',top:y+'px',width:side+'px',height:side+'px',zIndex:100001,pointerEvents:'none',color:'#f7ead0'})}}else a.style.display='none'}
 
-function sync(){mode();layout(true);enforceFrame(true);}
+function sync(){mode();layout(true);enforceFrame(true);if(isMobile()&&window.HUD_EDITOR1001)requestAnimationFrame(()=>window.HUD_EDITOR1001.apply({recapture:true}));}
 function ver(){try{CFG.version=VER;if(typeof HTCT!=='undefined')HTCT.version=VER;if(S?.v320)S.v320.patchVersion=VER;document.title='Hành Trình Cổ Thư — v'+VER;document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+VER)}catch(_){}}
-install();cleanup();mode();layout(true);enforceFrame(true);presentation(!!window._inPlay&&!!window._hasSession);forceActionIcon();ver();const onResize=()=>requestAnimationFrame(()=>{mode();layout(true);enforceFrame(true)});addEventListener('resize',onResize,{passive:true});media.addEventListener?.('change',onResize);
+install();cleanup();mode();layout(true);enforceFrame(true);presentation(!!window._inPlay&&!!window._hasSession);forceActionIcon();ver();const onResize=()=>requestAnimationFrame(()=>{mode();layout(true);enforceFrame(true);if(isMobile()&&window.HUD_EDITOR1001)requestAnimationFrame(()=>window.HUD_EDITOR1001.apply({recapture:true}))});addEventListener('resize',onResize,{passive:true});media.addEventListener?.('change',onResize);
 let lastIcon='';function frame(){const ico=actionIcon();if(ico!==lastIcon){lastIcon=ico;document.documentElement.style.setProperty('--c100-action-icon',iconData(ico));forceActionIcon()}mode();if(isMobile()&&!window._inPlay)presentation(false);forceActionIcon();requestAnimationFrame(frame)}requestAnimationFrame(frame);
-const oldRestore=typeof restoreSession==='function'?restoreSession:null;if(oldRestore)restoreSession=function(...args){const val=oldRestore.apply(this,args);requestAnimationFrame(()=>{mode();layout(true);enforceFrame(true);ver()});return val};
+const oldRestore=typeof restoreSession==='function'?restoreSession:null;if(oldRestore)restoreSession=function(...args){const val=oldRestore.apply(this,args);requestAnimationFrame(()=>{mode();layout(true);enforceFrame(true);if(isMobile()&&window.HUD_EDITOR1001)requestAnimationFrame(()=>window.HUD_EDITOR1001.apply({recapture:true}));ver()});return val};
 setTimeout(ver,1200);setTimeout(ver,3200);window.MOBILE_UI100={version:VER,layout:()=>layout(true),sync,active:isMobile};
 })();
 </script>
@@ -21618,9 +21618,9 @@ body[data-mobile-hud100="1"] #quickDock100.open100 .quickTray100{overflow:visibl
 
 </style>
 <script id="hudEditorScript1001">
-/* Mobile HUD Studio v6.100.2 — isolated, no changes to gameplay or Liquid Glass colors. */
+/* Mobile HUD Studio v6.100.3 — isolated, no changes to gameplay or Liquid Glass colors. */
 (()=>{'use strict';
-const VERSION='6.100.2',KEY='htct-mobile-layout-1002',TOOLKEY='htct-hud-toolbox-1002';
+const VERSION='6.100.3',KEY='htct-mobile-layout-1003',TOOLKEY='htct-hud-toolbox-1003';
 const $=id=>document.getElementById(id),clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const ITEMS=[
  ['avatar','Avatar + vòng EXP','#orbitDock622','group'],
@@ -21704,7 +21704,7 @@ function applyItem(id){if(!mobile())return;const d=BY_ID.get(id),el=lookup(id),r
  }
  if(d.kind==='hidden'&&editing&&showHidden){setStyle(el,'display','block');setStyle(el,'visibility','visible');setStyle(el,'pointer-events','auto')}
 }
-function applyAll({recapture=false}={}){if(!mobile())return;if(recapture){restoreAll()}currentProfile=profile();for(const id of BY_ID.keys())applyItem(id);updateOutline()}
+function applyAll({recapture=false}={}){if(!mobile()||(!editing&&!(window._inPlay&&window._hasSession)))return;if(recapture){restoreAll()}currentProfile=profile();for(const id of BY_ID.keys())applyItem(id);updateOutline()}
 function clearItem(id){delete data.profiles[profile()][id];const el=lookup(id);if(el)restore(el);baselines.delete(id);if(mobile()&&typeof MOBILE_UI100?.sync==='function')try{MOBILE_UI100.sync()}catch(_){};setTimeout(()=>{applyAll();updateOutline()},40);persist()}
 function status(t){const box=$('hudMsg1001');if(box)box.textContent=t}
 function toolboxPosition(){const t=$('hudTool1001');if(!t)return;const r=t.getBoundingClientRect(),w=r.width||242,h=r.height||55;const x=clamp((data.toolbox.x||0)*innerWidth,2,Math.max(2,innerWidth-w-2));const y=clamp((data.toolbox.y||0)*innerHeight,2,Math.max(2,innerHeight-h-2));t.style.left=Math.round(x)+'px';t.style.top=Math.round(y)+'px'}
@@ -21785,11 +21785,11 @@ function initTool(){const t=document.createElement('section');t.id='hudTool1001'
  document.addEventListener('keydown',e=>{if(!editing||e.target.closest('#hudTool1001'))return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){snapshot();dragSelected(e.key==='ArrowLeft'?-1:e.key==='ArrowRight'?1:0,e.key==='ArrowUp'?-1:e.key==='ArrowDown'?1:0);persist()}if(e.key==='Escape')leave();if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Escape',' ','KeyW','KeyA','KeyS','KeyD'].includes(e.key)||e.code?.startsWith('Key')){e.preventDefault();e.stopImmediatePropagation()}},true);
 }
 function history(direction){const p=profile(),src=direction==='undo'?snapshots:future,dst=direction==='undo'?future:snapshots;if(!src.length)return;dst.push(JSON.stringify(data.profiles[p]));data.profiles[p]=JSON.parse(src.pop());restoreAll();if(typeof window.MOBILE_UI100?.sync==='function')try{MOBILE_UI100.sync()}catch(_){};setTimeout(()=>{applyAll({recapture:true});updateOutline();syncControls()},45);persist();syncHistory()}
-function exportJSON(){persist();const payload={...data,gameVersion:VERSION,exportedAt:new Date().toISOString()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='HUD-Mobile-Config-v6.100.2.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),6000);status('Đã xuất JSON. Bạn có thể gửi file này để áp dụng vào bản game sau.');}
+function exportJSON(){persist();const payload={...data,gameVersion:VERSION,exportedAt:new Date().toISOString()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='HUD-Mobile-Config-v6.100.3.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),6000);status('Đã xuất JSON. Bạn có thể gửi file này để áp dụng vào bản game sau.');}
 async function handleImport(e){const file=e.target.files?.[0];e.target.value='';if(!file)return;if(file.size>120000){status('File cấu hình quá lớn (>120 KB).');return}try{const next=safeData(JSON.parse(await file.text()));snapshot();data=next;persist();restoreAll();if(typeof window.MOBILE_UI100?.sync==='function')window.MOBILE_UI100.sync();setTimeout(()=>{applyAll({recapture:true});toolboxPosition();syncControls();updateOutline()},60);status('Đã nhập cấu hình 16:9.')}catch(err){status('Không thể nhập: '+err.message)}}
 // Disable combat, damage-over-time and hostile AI *while* manipulating the mobile HUD.
 const updateBase=typeof update==='function'?update:null;if(updateBase)update=function(dt){if(editing)return;return updateBase.apply(this,arguments)};
-function refresh(){if(editing){updateOutline();if($('quickDock100')?.classList.contains('open100')===false)openDrawer()}requestAnimationFrame(refresh)}
+let lastSessionReady1003=false;function refresh(){const ready=mobile()&&!!window._inPlay&&!!window._hasSession;if(ready&&!lastSessionReady1003)requestAnimationFrame(()=>applyAll({recapture:true}));if(!ready&&lastSessionReady1003&&!editing)restoreAll();lastSessionReady1003=ready;if(editing){updateOutline();if($('quickDock100')?.classList.contains('open100')===false)openDrawer()}requestAnimationFrame(refresh)}
 function resize(){setTimeout(()=>{if(!mobile()){if(editing)leave({reopen:false});restoreAll();return;}if(profile()!==currentProfile){restoreAll();baselines.clear()}applyAll({recapture:true});toolboxPosition();updateOutline()},80)}
 addEventListener('resize',resize,{passive:true});window.visualViewport?.addEventListener('resize',resize,{passive:true});
 // Reapply a saved HUD when a new game starts or a save slot is loaded.
