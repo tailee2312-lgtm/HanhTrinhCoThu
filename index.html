@@ -21563,5 +21563,231 @@ setTimeout(ver,1200);setTimeout(ver,3200);window.MOBILE_UI100={version:VER,layou
 })();
 </script>
 
+<style id="hudEditorStyle1001">
+/* Small movable editor, independent of the game's Liquid Glass design. */
+#hudSetting1001{gap:8px;align-items:center;flex-wrap:wrap}
+#hudSetting1001 .btn{min-height:36px!important;font-size:14px!important;padding:7px 12px!important}
+#hudTool1001{box-sizing:border-box!important;position:fixed!important;display:none;left:12px;top:32vh;width:242px!important;max-width:min(242px,calc(100vw - 8px))!important;height:auto!important;max-height:min(270px,calc(100dvh - 7px))!important;z-index:200100!important;overflow:hidden!important;color:#f5edd0!important;font:12px/1.25 system-ui,sans-serif!important;border:1px solid rgba(241,216,157,.83)!important;border-radius:13px!important;background:linear-gradient(150deg,rgba(25,74,76,.94),rgba(5,30,37,.95))!important;box-shadow:0 10px 30px #03181db3,inset 0 1px #ebf9d733!important;backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important;opacity:1!important;transform:none!important;translate:none!important;scale:1!important;touch-action:auto!important}
+#hudTool1001 *{box-sizing:border-box!important;max-width:100%!important;font-family:system-ui,sans-serif!important;text-shadow:none!important;letter-spacing:normal!important}
+#hudHandle1001{display:flex!important;align-items:center!important;justify-content:space-between!important;height:34px!important;min-height:34px!important;gap:8px!important;padding:0 8px 0 12px!important;background:rgba(241,216,157,.11)!important;border-bottom:1px solid #d8c89254!important;cursor:grab!important;touch-action:none!important;user-select:none!important}
+#hudHandle1001:active{cursor:grabbing!important}#hudHandle1001>span{font-weight:750!important;font-size:11px!important;white-space:nowrap!important;letter-spacing:.075em!important}
+#hudTool1001 button{position:static!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:none!important;min-width:29px!important;min-height:27px!important;height:27px!important;padding:2px 7px!important;margin:0!important;border-radius:7px!important;border:1px solid rgba(216,196,146,.5)!important;background:rgba(19,65,68,.75)!important;color:#f6efda!important;font:600 11px/1 system-ui,sans-serif!important;cursor:pointer!important;box-shadow:none!important;transform:none!important;opacity:1!important;touch-action:manipulation!important}
+#hudTool1001 button:disabled{opacity:.35!important}#hudTool1001 button:active{background:rgba(78,130,119,.9)!important}
+#hudTool1001 .hudAccent1001{background:#436d61!important;border-color:#e3d297!important}
+#hudTool1001 .hudHeadButtons1001{display:flex!important;gap:5px!important;align-items:center!important}
+#hudTool1001 .hudHeadButtons1001 button{width:28px!important;height:26px!important;min-height:26px!important;font-size:15px!important}
+#hudBody1001{display:flex!important;flex-direction:column!important;gap:7px!important;padding:9px!important;max-height:min(226px,calc(100dvh - 55px))!important;min-width:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;scrollbar-width:thin!important}
+#hudTool1001.hudCollapsed1001 #hudBody1001{display:none!important}#hudTool1001.hudCollapsed1001{width:176px!important}
+#hudItem1001{position:static!important;display:block!important;width:100%!important;height:30px!important;min-height:30px!important;margin:0!important;padding:3px 6px!important;color:#f9eecf!important;font:12px system-ui,sans-serif!important;background:#153d43!important;border:1px solid #b3a478aa!important;border-radius:7px!important}
+#hudItem1001 option{color:#f3f1dd;background:#153d43}
+#hudTool1001 .hudRow1001{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:4px!important;width:100%!important;min-height:25px!important;flex-wrap:nowrap!important;margin:0!important;padding:0!important;border:0!important;background:none!important}
+#hudChosen1001{flex:1!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-size:11px!important;color:#d9e7dc!important}
+#hudValue1001{min-width:38px!important;text-align:right!important;font-weight:700!important}
+#hudScale1001{flex:1!important;min-width:40px!important;width:100%!important;max-width:none!important;height:25px!important;margin:0!important;accent-color:#daca8f!important}
+#hudTool1001 .hudNudge1001 button{flex:1!important;font-size:15px!important}
+#hudTool1001 .hudChecks1001{justify-content:space-between!important;gap:4px!important}
+#hudTool1001 .hudChecks1001 label{display:inline-flex!important;align-items:center!important;gap:3px!important;color:#e5f1df!important;font:10px/1.1 system-ui,sans-serif!important;white-space:nowrap!important}
+#hudTool1001 input[type=checkbox]{margin:0!important;width:13px!important;height:13px!important;min-width:13px!important;min-height:13px!important;accent-color:#d6c488!important}
+#hudMsg1001{font-size:10px!important;line-height:1.25!important;max-height:29px!important;min-height:25px!important;overflow:hidden!important;color:#d2e6d6!important}
+#hudOutline1001{display:none;position:fixed!important;z-index:200090!important;pointer-events:none!important;border:2px dashed #f7e2a7!important;border-radius:8px!important;box-shadow:0 0 0 1px #16474b,0 0 10px #ffe5a46b!important;background:rgba(234,223,174,.035)!important;transform:none!important;box-sizing:border-box!important}
+#hudOutline1001>span{position:absolute!important;bottom:calc(100% + 3px)!important;left:0!important;max-width:180px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;border-radius:5px!important;padding:3px 6px!important;background:#19484aec!important;border:1px solid #f3dfa6!important;color:#fff7db!important;font:600 10px system-ui,sans-serif!important}
+.hudGuide1001{position:fixed;z-index:200080;display:none;pointer-events:none;border:0 dashed #fee7aa;opacity:.8}
+#hudGuideV1001{top:0;bottom:0;border-left:1px dashed #fee7aa}
+#hudGuideH1001{left:0;right:0;border-top:1px dashed #fee7aa}
+body.hudEditing1001 #game{pointer-events:none!important}
+body.hudEditing1001 :is(#joy,#act,#run,#skillHud970 button,#orbitDock622,#environmentHud625,#quickDock100,#toast,#hint){touch-action:none!important}
+body.hudEditing1001 #quickDock100.open100 .quickTray100{max-width:500px!important;overflow:visible!important;opacity:1!important;pointer-events:auto!important}
+body.hudEditing1001 #quickDock100 .quickItem100{touch-action:none!important}
+body.hudEditing1001 #quickDock100 :is(.quickItem100,#quickToggle100){pointer-events:auto!important}
+body.hudEditing1001 #hudTool1001{touch-action:auto!important}
+
+body[data-mobile-hud100="1"] #quickDock100.open100 .quickTray100{overflow:visible!important}
+
+</style>
+<script id="hudEditorScript1001">
+/* Mobile HUD Studio v6.100.1 — isolated, no changes to gameplay or Liquid Glass colors. */
+(()=>{'use strict';
+const VERSION='6.100.1',KEY='htct-mobile-layout-1001',TOOLKEY='htct-hud-toolbox-1001';
+const $=id=>document.getElementById(id),clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const ITEMS=[
+ ['avatar','Avatar + vòng EXP','#orbitDock622','group'],
+ ['minimap','Minimap','#environmentHud625','group'],
+ ['drawer','Cụm chức năng','#quickDock100','group'],
+ ['drawerToggle','Nút xổ chức năng','#quickToggle100','child'],
+ ['quickPet','Thú cưng','#quickDock100 .quickItem100:nth-child(1)','child'],
+ ['quickBag','Túi đồ','#quickDock100 .quickItem100:nth-child(2)','child'],
+ ['quickBook','Cổ thư','#quickDock100 .quickItem100:nth-child(3)','child'],
+ ['quickStory','Cốt truyện','#quickDock100 .quickItem100:nth-child(4)','child'],
+ ['quickSettings','Cài đặt','#quickDock100 .quickItem100:nth-child(5)','child'],
+ ['quickQuest','Nhiệm vụ','#quickDock100 .quickItem100:nth-child(6)','child'],
+ ['joystick','Joystick','#joy','control'],
+ ['attack','Đánh thường','#act','control'],
+ ['sprint','Chạy','#run','control'],
+ ['skill1','Chiêu 1 · Tấn công','#skillHud970 button:nth-child(1)','control'],
+ ['skill2','Chiêu 2 · Hỗ trợ','#skillHud970 button:nth-child(2)','control'],
+ ['skill3','Chiêu 3 · Phòng thủ','#skillHud970 button:nth-child(3)','control'],
+ ['hint','Gợi ý tương tác','#hint','control'],
+ ['toast','Thông báo','#toast','control'],
+ ['quest','Ô nhiệm vụ (tùy chọn)','#questBox','hidden'],
+ ['resource','Tài nguyên (tùy chọn)','#resourceHud623','hidden'],
+ ['boss','Thanh boss Rễ Cổ (nếu hiện)','#bossHud652','optional'],
+ ['forestBoss','Thanh boss Rừng (nếu hiện)','#forestBossHud681','optional']
+ ];
+const BY_ID=new Map(ITEMS.map(([id,name,selector,kind])=>[id,{id,name,selector,kind}]));
+const lookup=id=>{const d=BY_ID.get(id);return d?document.querySelector(d.selector):null};
+const mobile=()=>document.body?.dataset?.mobileHud100==='1';
+const profile=()=>{const ratio=innerWidth/Math.max(innerHeight,1);return ratio>2.28?'19:6':'16:9'};
+const fresh=()=>({kind:'HTCT-Mobile-HUD',schema:1,gameVersion:VERSION,profiles:{'16:9':{},'19:6':{}},toolbox:{x:.012,y:.36}});
+function safeData(raw){const data=fresh();if(!raw||raw.kind!==data.kind||raw.schema!==1||typeof raw.profiles!=='object')throw Error('File cấu hình không đúng định dạng');
+ for(const p of ['16:9','19:6'])for(const [id,rec]of Object.entries(raw.profiles?.[p]||{})){if(!BY_ID.has(id)||!rec||typeof rec!=='object')continue;
+  const r={};for(const key of ['x','y','dx','dy','scale'])if(Number.isFinite(rec[key])){const lim=key==='scale'?[.5,1.85]:key==='x'||key==='y'?[-.2,1.2]:[-700,700];r[key]=clamp(Number(rec[key]),...lim)}
+  if(Object.keys(r).length)data.profiles[p][id]=r;
+ }
+ if(raw.toolbox&&Number.isFinite(raw.toolbox.x)&&Number.isFinite(raw.toolbox.y))data.toolbox={x:clamp(raw.toolbox.x,0,1),y:clamp(raw.toolbox.y,0,1)};
+ return data;
+}
+let data=fresh();try{const raw=localStorage.getItem(KEY);if(raw)data=safeData(JSON.parse(raw))}catch(e){console.warn('[HUD1001] Cannot load saved layout',e)}
+let editing=false,selected='avatar',toolDrag=null,hudDrag=null,activePointers=new Map(),pinch=null,showHidden=false;
+let originals=new Map(),baselines=new Map(),snapshots=[],future=[],currentProfile='';
+const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){status('Lưu tự động bị chặn: hãy xuất JSON')}};
+const itemData=(id,p=profile())=>data.profiles[p][id];
+const setItem=(id,v)=>{data.profiles[profile()][id]=v;persist()};
+function bounds(){return {w:innerWidth,h:innerHeight}}
+function base(id){return baselines.get(id)}
+function remember(el){if(!el||originals.has(el))return;const o=new Map();for(const prop of ['position','left','top','right','bottom','width','height','min-width','min-height','max-width','max-height','transform','transform-origin','scale','display','visibility','pointer-events','opacity'])o.set(prop,[el.style.getPropertyValue(prop),el.style.getPropertyPriority(prop)]);originals.set(el,o)}
+function setStyle(el,prop,value){if(!el)return;remember(el);el.style.setProperty(prop,String(value),'important')}
+function restore(el){const old=originals.get(el);if(!old)return;for(const [p,[v,pri]]of old){if(v)el.style.setProperty(p,v,pri);else el.style.removeProperty(p)}originals.delete(el)}
+function restoreAll(){for(const el of [...originals.keys()])restore(el);baselines.clear()}
+function measure(id){const el=lookup(id),d=BY_ID.get(id);if(!el||!d)return null;
+ let rect=el.getBoundingClientRect();if((!rect.width||!rect.height)&&d.kind==='hidden'){
+  setStyle(el,'display','block');setStyle(el,'visibility','visible');rect=el.getBoundingClientRect();
+  restore(el);
+ }
+ if(rect.width<2||rect.height<2)return null;
+ return {x:rect.x,y:rect.y,w:rect.width,h:rect.height};
+}
+function getBase(id){if(baselines.has(id))return baselines.get(id);const d=BY_ID.get(id),el=lookup(id);if(!d||!el)return null;const rect=measure(id);if(!rect)return null;
+ const r={...rect};baselines.set(id,r);return r}
+function ensureRecord(id){const d=BY_ID.get(id);if(!d)return null;const p=profile(),curr=data.profiles[p][id];if(curr)return {...curr};const r=getBase(id);if(!r)return null;
+ if(d.kind==='child')return {dx:0,dy:0,scale:1};return {x:clamp(r.x/innerWidth,0,.98),y:clamp(r.y/innerHeight,0,.98),scale:1}
+}
+function snapshot(){snapshots.push(JSON.stringify(data.profiles[profile()]));if(snapshots.length>40)snapshots.shift();future=[];syncHistory()}
+function editRecord(id,rec,{commit=false}={}){const old=ensureRecord(id);if(!old)return;data.profiles[profile()][id]={...old,...rec};applyItem(id);updateOutline();syncControls();if(commit)persist()}
+function relative(id){return BY_ID.get(id)?.kind==='child'}
+function applyItem(id){if(!mobile())return;const d=BY_ID.get(id),el=lookup(id),rec=itemData(id);if(!d||!el||!rec)return;const measured=getBase(id);if(!measured)return;
+ if(relative(id)){
+  setStyle(el,'transform',`translate(${Math.round(rec.dx||0)}px,${Math.round(rec.dy||0)}px) scale(${rec.scale||1})`);
+  setStyle(el,'transform-origin','center center');return;
+ }
+ // Position every top-level HUD item in viewport coordinates. For avatar/map/drawer, scale their *whole* subtree.
+ const scale=rec.scale||1,w=measured.w,h=measured.h;
+ let x=clamp((rec.x||0)*innerWidth,0,Math.max(0,innerWidth-w*scale));let y=clamp((rec.y||0)*innerHeight,0,Math.max(0,innerHeight-h*scale));
+ setStyle(el,'position','fixed');setStyle(el,'left',Math.round(x)+'px');setStyle(el,'top',Math.round(y)+'px');setStyle(el,'right','auto');setStyle(el,'bottom','auto');setStyle(el,'transform-origin','top left');setStyle(el,'transform',`scale(${scale})`);
+ if(['control','hidden','optional'].includes(d.kind)){
+  setStyle(el,'width',Math.round(w)+'px');setStyle(el,'height',Math.round(h)+'px');
+  setStyle(el,'min-width','0px');setStyle(el,'min-height','0px');
+  setStyle(el,'max-width','none');setStyle(el,'max-height','none');
+ }
+ if(d.kind==='hidden'&&editing&&showHidden){setStyle(el,'display','block');setStyle(el,'visibility','visible');setStyle(el,'pointer-events','auto')}
+}
+function applyAll({recapture=false}={}){if(!mobile())return;if(recapture){restoreAll()}currentProfile=profile();for(const id of BY_ID.keys())applyItem(id);updateOutline()}
+function clearItem(id){delete data.profiles[profile()][id];const el=lookup(id);if(el)restore(el);baselines.delete(id);if(mobile()&&typeof MOBILE_UI100?.sync==='function')try{MOBILE_UI100.sync()}catch(_){};setTimeout(()=>{applyAll();updateOutline()},40);persist()}
+function status(t){const box=$('hudMsg1001');if(box)box.textContent=t}
+function toolboxPosition(){const t=$('hudTool1001');if(!t)return;const r=t.getBoundingClientRect(),w=r.width||242,h=r.height||55;const x=clamp((data.toolbox.x||0)*innerWidth,2,Math.max(2,innerWidth-w-2));const y=clamp((data.toolbox.y||0)*innerHeight,2,Math.max(2,innerHeight-h-2));t.style.left=Math.round(x)+'px';t.style.top=Math.round(y)+'px'}
+function saveToolPosition(){const r=$('hudTool1001')?.getBoundingClientRect();if(!r)return;data.toolbox={x:r.x/innerWidth,y:r.y/innerHeight};persist()}
+function openDrawer(){const dock=$('quickDock100');if(!dock)return;dock.classList.add('open100');const toggle=$('quickToggle100');toggle?.setAttribute('aria-expanded','true')}
+function closeDrawer(){const dock=$('quickDock100');dock?.classList.remove('open100');$('quickToggle100')?.setAttribute('aria-expanded','false')}
+function showHiddenExtras(on){for(const id of ['quest','resource']){const el=lookup(id);if(!el)continue;if(on){setStyle(el,'display','block');setStyle(el,'visibility','visible');setStyle(el,'pointer-events','auto')}else{restore(el)}}}
+function enter(){if(editing)return;if(!mobile()){status('Hãy xoay điện thoại ngang để chỉnh HUD.');return}editing=true;selected='avatar';baselines.clear();document.body.classList.add('hudEditing1001');document.querySelector('#settings')?.classList.remove('on');document.querySelector('#menu')?.classList.remove('on');
+ try{typeof resetInput==='function'&&resetInput()}catch(_){}
+ // Pause gameplay by overriding update() below; open utility tray, and keep all control targets selectable.
+ openDrawer();const t=$('hudTool1001');t.style.display='block';toolboxPosition();
+ document.getElementById('hudGrid1001').checked=true;syncSelect();snapshot();applyAll();syncControls();status('Kéo trực tiếp một nút. Kéo thanh đầu bảng để dời toolbox.');updateOutline();}
+function leave({reopen=true}={}){if(!editing)return;editing=false;document.body.classList.remove('hudEditing1001');showHiddenExtras(false);$('hudTool1001').style.display='none';$('hudOutline1001').style.display='none';$('hudGuideV1001').style.display='none';$('hudGuideH1001').style.display='none';toolDrag=null;hudDrag=null;activePointers.clear();pinch=null;closeDrawer();persist();
+ if(reopen&&$('settings'))$('settings').classList.add('on');}
+function chosen(id){if(!BY_ID.has(id))return;selected=id;if(relative(id))openDrawer();if(id==='quest'||id==='resource'){showHidden=true;$('hudHidden1001').checked=true;showHiddenExtras(true)}syncSelect();syncControls();updateOutline()}
+function syncSelect(){$('hudItem1001').value=selected}
+function scaleOf(id){return itemData(id)?.scale||1}
+function syncControls(){const s=scaleOf(selected);if($('hudScale1001'))$('hudScale1001').value=Math.round(s*100);if($('hudValue1001'))$('hudValue1001').textContent=Math.round(s*100)+'%';if($('hudChosen1001'))$('hudChosen1001').textContent=BY_ID.get(selected)?.name||''}
+function syncHistory(){$('hudUndo1001').disabled=!snapshots.length;$('hudRedo1001').disabled=!future.length}
+function guide(a,b){const el=$('hudGuide'+a+'1001');if(!el)return;el.style.display=b?'block':'none';if(b)el.style[a==='V'?'left':'top']=b+'px'}
+function updateOutline(){const out=$('hudOutline1001');if(!editing||!out){if(out)out.style.display='none';return}const el=lookup(selected);if(!el){out.style.display='none';return}const r=el.getBoundingClientRect();if(r.width<2||r.height<2){out.style.display='none';return}out.style.display='block';Object.assign(out.style,{left:Math.round(r.x-3)+'px',top:Math.round(r.y-3)+'px',width:Math.round(r.width+6)+'px',height:Math.round(r.height+6)+'px'});out.querySelector('span').textContent=BY_ID.get(selected)?.name||selected}
+function snapXY(x,y,id,scale){const grid=$('hudGrid1001')?.checked,center=$('hudCenter1001')?.checked,r=getBase(id);if(!r)return [x,y];const cell=8;
+ let sx=grid?Math.round(x/cell)*cell:x,sy=grid?Math.round(y/cell)*cell:y,guideX=0,guideY=0;
+ if(center){const w=r.w*scale,h=r.h*scale;const targetsX=[0,innerWidth/2,innerWidth],targetsY=[0,innerHeight/2,innerHeight];for(const tx of targetsX)for(const anchor of [0,.5,1])if(Math.abs((sx+w*anchor)-tx)<9){sx=tx-w*anchor;guideX=tx;break}
+ for(const ty of targetsY)for(const anchor of [0,.5,1])if(Math.abs((sy+h*anchor)-ty)<9){sy=ty-h*anchor;guideY=ty;break}}
+ guide('V',guideX);guide('H',guideY);return [sx,sy]}
+function dragSelected(dx,dy){const id=selected,prev=ensureRecord(id);if(!prev)return;const r=getBase(id);if(!r)return;if(relative(id)){editRecord(id,{dx:clamp((prev.dx||0)+dx,-700,700),dy:clamp((prev.dy||0)+dy,-700,700)});return}
+ const scale=prev.scale||1;const x=clamp((prev.x||0)*innerWidth+dx,0,Math.max(0,innerWidth-r.w*scale)),y=clamp((prev.y||0)*innerHeight+dy,0,Math.max(0,innerHeight-r.h*scale));const [nx,ny]=snapXY(x,y,id,scale);
+ editRecord(id,{x:clamp(nx/innerWidth,0,1),y:clamp(ny/innerHeight,0,1)});
+}
+function setScale(s){const old=ensureRecord(selected);if(!old)return;const scale=clamp(Math.round(s)/100,.5,1.85);editRecord(selected,{scale},{commit:true})}
+function chooseAt(node){for(const [id,d]of [...BY_ID].reverse())if(node.closest?.(d.selector))return id;return null}
+function handleHudPointerDown(e){if(!editing||e.target.closest('#hudTool1001'))return;const id=chooseAt(e.target);if(!id){if(e.target.closest('#game')){e.preventDefault();e.stopImmediatePropagation()}return}
+ e.preventDefault();e.stopImmediatePropagation();if(e.cancelable)e.preventDefault();chosen(id);
+ const r=lookup(id)?.getBoundingClientRect();activePointers.set(e.pointerId,{id,x:e.clientX,y:e.clientY});if(activePointers.size===2){const arr=[...activePointers.values()].filter(v=>v.id===id);if(arr.length===2){pinch={id,dist:Math.hypot(arr[0].x-arr[1].x,arr[0].y-arr[1].y)||1,scale:scaleOf(id)};snapshot()}return}
+ hudDrag={pointer:e.pointerId,id,x:e.clientX,y:e.clientY,rec:ensureRecord(id)};snapshot();}
+function handleHudPointerMove(e){if(!editing||!activePointers.has(e.pointerId))return;e.preventDefault();e.stopImmediatePropagation();const v=activePointers.get(e.pointerId);v.x=e.clientX;v.y=e.clientY;
+ if(pinch&&activePointers.size>=2){const arr=[...activePointers.values()].filter(a=>a.id===pinch.id);if(arr.length>=2){const dist=Math.hypot(arr[0].x-arr[1].x,arr[0].y-arr[1].y);setScale(pinch.scale*dist/pinch.dist*100)}return}
+ if(hudDrag?.pointer===e.pointerId){const dx=e.clientX-hudDrag.x,dy=e.clientY-hudDrag.y;const id=hudDrag.id,old=hudDrag.rec;if(relative(id))editRecord(id,{dx:clamp((old.dx||0)+dx,-700,700),dy:clamp((old.dy||0)+dy,-700,700)});else {const r=getBase(id);if(!r)return;const scale=old.scale||1;const x=clamp((old.x||0)*innerWidth+dx,0,Math.max(0,innerWidth-r.w*scale)),y=clamp((old.y||0)*innerHeight+dy,0,Math.max(0,innerHeight-r.h*scale));const [sx,sy]=snapXY(x,y,id,scale);editRecord(id,{x:clamp(sx/innerWidth,0,1),y:clamp(sy/innerHeight,0,1)})}}
+}
+function handleHudPointerUp(e){if(!editing)return;if(activePointers.has(e.pointerId)){activePointers.delete(e.pointerId);persist();if(hudDrag?.pointer===e.pointerId)hudDrag=null;if(activePointers.size<2)pinch=null;guide('V',0);guide('H',0);e.preventDefault();e.stopImmediatePropagation()}}
+function onDocClick(e){if(!editing||e.target.closest('#hudTool1001'))return;if(chooseAt(e.target)||e.target.closest('#game')){e.preventDefault();e.stopImmediatePropagation()}}
+function updateSettings(){let wrap=$('hudSetting1001');if(wrap)return;const host=document.querySelector('#settings .panel');if(!host)return;
+ wrap=document.createElement('div');wrap.id='hudSetting1001';wrap.className='row';wrap.innerHTML='<label>Chỉnh sửa HUD mobile</label><button id="hudOpen1001" type="button" class="btn alt">Mở bảng chỉnh HUD</button>';
+ const anchor=$('settingDisplayRow972');if(anchor?.parentNode===host)anchor.insertAdjacentElement('afterend',wrap);else host.append(wrap);
+ $('hudOpen1001').addEventListener('click',enter);
+}
+function initTool(){const t=document.createElement('section');t.id='hudTool1001';t.setAttribute('role','dialog');t.setAttribute('aria-label','Bảng chỉnh HUD mobile');t.innerHTML=`<div id="hudHandle1001"><span>✥ HUD MOBILE</span><div class="hudHeadButtons1001"><button id="hudCollapse1001" title="Thu gọn" aria-label="Thu gọn">▾</button><button id="hudDone1001" title="Hoàn tất" aria-label="Hoàn tất">✓</button></div></div>
+<div id="hudBody1001">
+ <select id="hudItem1001" aria-label="Thành phần muốn chỉnh"></select>
+ <div class="hudRow1001"><span id="hudChosen1001"></span><span id="hudValue1001">100%</span></div>
+ <div class="hudRow1001"><button id="hudMinus1001" title="Nhỏ 5%">−</button><input id="hudScale1001" aria-label="Kích cỡ" type="range" min="50" max="185" value="100" step="1"/><button id="hudPlus1001" title="Lớn 5%">＋</button></div>
+ <div class="hudRow1001 hudNudge1001"><button data-move="-1,0" title="Trái">←</button><button data-move="0,-1" title="Lên">↑</button><button data-move="0,1" title="Xuống">↓</button><button data-move="1,0" title="Phải">→</button></div>
+ <div class="hudRow1001 hudChecks1001"><label><input type="checkbox" id="hudGrid1001" checked/>Lưới 8px</label><label><input type="checkbox" id="hudCenter1001" checked/>Căn giữa</label></div>
+ <div class="hudRow1001 hudChecks1001"><label><input type="checkbox" id="hudHidden1001"/>Hiện HUD phụ</label><button id="hudResetOne1001" title="Đặt lại đối tượng">Đặt lại</button></div>
+ <div class="hudRow1001"><button id="hudUndo1001">↶ Hoàn tác</button><button id="hudRedo1001">↷ Làm lại</button><button id="hudResetAll1001" title="Khôi phục bố cục gốc">Gốc</button></div>
+ <div class="hudRow1001"><button id="hudExport1001" class="hudAccent1001">↓ Xuất JSON</button><button id="hudImport1001">↑ Nhập JSON</button><input id="hudFile1001" type="file" accept="application/json,.json" hidden/></div>
+ <div id="hudMsg1001" role="status">Kéo một thành phần hoặc chọn từ danh sách.</div>
+</div>`;
+ for(const [id,name]of ITEMS){const opt=document.createElement('option');opt.value=id;opt.textContent=name;t.querySelector('select').append(opt)}document.body.append(t);
+ const outline=document.createElement('div');outline.id='hudOutline1001';outline.innerHTML='<span></span>';document.body.append(outline);
+ for(const axis of ['V','H']){const g=document.createElement('div');g.id='hudGuide'+axis+'1001';g.className='hudGuide1001';document.body.append(g)}
+ $('hudDone1001').onclick=()=>leave();$('hudCollapse1001').onclick=()=>{t.classList.toggle('hudCollapsed1001');$('hudCollapse1001').textContent=t.classList.contains('hudCollapsed1001')?'▸':'▾';toolboxPosition()};
+ $('hudItem1001').onchange=e=>chosen(e.target.value);
+ $('hudScale1001').oninput=e=>setScale(+e.target.value);
+ $('hudMinus1001').onclick=()=>{snapshot();setScale(Math.round(scaleOf(selected)*100)-5)};
+ $('hudPlus1001').onclick=()=>{snapshot();setScale(Math.round(scaleOf(selected)*100)+5)};
+ t.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>{snapshot();const [x,y]=b.dataset.move.split(',').map(Number);dragSelected(x*($('hudGrid1001').checked?8:1),y*($('hudGrid1001').checked?8:1));persist()});
+ $('hudHidden1001').onchange=e=>{showHidden=e.target.checked;showHiddenExtras(showHidden);updateOutline()};
+ $('hudResetOne1001').onclick=()=>{snapshot();clearItem(selected);status('Đã đặt lại: '+BY_ID.get(selected).name)};
+ $('hudResetAll1001').onclick=()=>{if(!confirm('Khôi phục bố cục HUD mặc định của tỷ lệ '+profile()+'?'))return;snapshot();data.profiles[profile()]={};restoreAll();if(typeof window.MOBILE_UI100?.sync==='function')MOBILE_UI100.sync();setTimeout(()=>{applyAll({recapture:true});updateOutline()},70);persist();status('Đã trở về bố cục gốc '+profile())};
+ $('hudUndo1001').onclick=()=>history('undo');$('hudRedo1001').onclick=()=>history('redo');
+ $('hudExport1001').onclick=exportJSON;$('hudImport1001').onclick=()=>$('hudFile1001').click();$('hudFile1001').onchange=handleImport;
+ const header=$('hudHandle1001');header.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;e.preventDefault();toolDrag={id:e.pointerId,startX:e.clientX,startY:e.clientY,left:t.getBoundingClientRect().x,top:t.getBoundingClientRect().y};try{header.setPointerCapture(e.pointerId)}catch(_){} });
+ header.addEventListener('pointermove',e=>{if(!toolDrag||toolDrag.id!==e.pointerId)return;const x=clamp(toolDrag.left+e.clientX-toolDrag.startX,2,innerWidth-t.offsetWidth-2),y=clamp(toolDrag.top+e.clientY-toolDrag.startY,2,innerHeight-t.offsetHeight-2);t.style.left=x+'px';t.style.top=y+'px';e.preventDefault()});
+ const finishTool=e=>{if(!toolDrag||toolDrag.id!==e.pointerId)return;toolDrag=null;saveToolPosition()};header.addEventListener('pointerup',finishTool);header.addEventListener('pointercancel',finishTool);
+ document.addEventListener('pointerdown',handleHudPointerDown,true);document.addEventListener('pointermove',handleHudPointerMove,true);document.addEventListener('pointerup',handleHudPointerUp,true);document.addEventListener('pointercancel',handleHudPointerUp,true);document.addEventListener('click',onDocClick,true);
+ document.addEventListener('keydown',e=>{if(!editing||e.target.closest('#hudTool1001'))return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){snapshot();dragSelected(e.key==='ArrowLeft'?-1:e.key==='ArrowRight'?1:0,e.key==='ArrowUp'?-1:e.key==='ArrowDown'?1:0);persist()}if(e.key==='Escape')leave();if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Escape',' ','KeyW','KeyA','KeyS','KeyD'].includes(e.key)||e.code?.startsWith('Key')){e.preventDefault();e.stopImmediatePropagation()}},true);
+}
+function history(direction){const p=profile(),src=direction==='undo'?snapshots:future,dst=direction==='undo'?future:snapshots;if(!src.length)return;dst.push(JSON.stringify(data.profiles[p]));data.profiles[p]=JSON.parse(src.pop());restoreAll();if(typeof window.MOBILE_UI100?.sync==='function')try{MOBILE_UI100.sync()}catch(_){};setTimeout(()=>{applyAll({recapture:true});updateOutline();syncControls()},45);persist();syncHistory()}
+function exportJSON(){persist();const payload={...data,gameVersion:VERSION,exportedAt:new Date().toISOString()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='HUD-Mobile-Config-v6.100.1.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),6000);status('Đã xuất JSON. Bạn có thể gửi file này để áp dụng vào bản game sau.');}
+async function handleImport(e){const file=e.target.files?.[0];e.target.value='';if(!file)return;if(file.size>120000){status('File cấu hình quá lớn (>120 KB).');return}try{const next=safeData(JSON.parse(await file.text()));snapshot();data=next;persist();restoreAll();if(typeof window.MOBILE_UI100?.sync==='function')window.MOBILE_UI100.sync();setTimeout(()=>{applyAll({recapture:true});toolboxPosition();syncControls();updateOutline()},60);status('Đã nhập cấu hình 16:9 và 19:6.')}catch(err){status('Không thể nhập: '+err.message)}}
+// Disable combat, damage-over-time and hostile AI *while* manipulating the mobile HUD.
+const updateBase=typeof update==='function'?update:null;if(updateBase)update=function(dt){if(editing)return;return updateBase.apply(this,arguments)};
+function refresh(){if(editing){updateOutline();if($('quickDock100')?.classList.contains('open100')===false)openDrawer()}requestAnimationFrame(refresh)}
+function resize(){setTimeout(()=>{if(!mobile()){if(editing)leave({reopen:false});restoreAll();return;}if(profile()!==currentProfile){restoreAll();baselines.clear()}applyAll({recapture:true});toolboxPosition();updateOutline()},80)}
+addEventListener('resize',resize,{passive:true});window.visualViewport?.addEventListener('resize',resize,{passive:true});
+// Reapply a saved HUD when a new game starts or a save slot is loaded.
+for(const name of ['enterGame','restoreSession'])try{const prev=globalThis[name];if(typeof prev==='function')globalThis[name]=function(...args){const out=prev.apply(this,args);requestAnimationFrame(()=>setTimeout(()=>applyAll({recapture:true}),80));return out}}catch(_){ }
+if(window.MOBILE_UI100?.sync){const prevSync=MOBILE_UI100.sync;MOBILE_UI100.sync=function(...args){const result=prevSync.apply(this,args);requestAnimationFrame(()=>applyAll({recapture:true}));return result}}
+// Settings remains the only way to enter editing. No new permanent HUD button appears on screen.
+initTool();updateSettings();if(mobile())setTimeout(()=>applyAll(),180);requestAnimationFrame(refresh);
+window.HUD_EDITOR1001={start:enter,finish:leave,select:chosen,exportJSON,apply:applyAll,get active(){return editing},get profile(){return profile()},get config(){return JSON.parse(JSON.stringify(data))},get selected(){return selected},get items(){return ITEMS.map(x=>x[0])}};
+function setVersion(){try{CFG.version=VERSION;HTCT.version=VERSION;if(S?.v320)S.v320.patchVersion=VERSION;document.title='Hành Trình Cổ Thư — v'+VERSION;document.querySelectorAll('.ver').forEach(e=>e.textContent='v'+VERSION)}catch(_){}}
+setVersion();setTimeout(setVersion,1500);setTimeout(setVersion,3350);
+})();
+
+</script>
 </body>
 </html>
