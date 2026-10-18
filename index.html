@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head><style>@layer developer660;</style><style>@layer boss652;@layer boss652{#bossHud652{display:none!important;position:fixed!important;top:20px!important;left:50%!important;transform:translateX(-50%)!important;width:min(660px,54vw)!important;z-index:80!important;pointer-events:none!important;text-align:center!important;color:#fff1c4!important;text-shadow:0 2px 4px #142018!important}#bossHud652.on{display:block!important}#bossHud652 strong{font-size:25px!important;letter-spacing:.03em!important}#bossHud652 small{display:block!important;font-size:15px!important;margin-top:6px!important}.bossTrack652{height:24px!important;position:relative!important;border:2px solid #ead69a!important;background:#263832e8!important;border-radius:7px!important;overflow:hidden!important;box-shadow:0 0 15px #e4b56444!important}.bossTrack652 i{display:block!important;height:100%!important;background:linear-gradient(90deg,#b54646,#f98d76)!important;transition:width .25s ease!important}.bossTrack652:before,.bossTrack652:after{content:""!important;position:absolute!important;top:0!important;bottom:0!important;width:2px!important;background:#fff0b4!important;z-index:2!important}.bossTrack652:before{left:33.333%!important}.bossTrack652:after{left:66.666%!important}body.bossFight652 #questHud,body.bossFight652 #questPanel{opacity:0!important;pointer-events:none!important}#phaseNotice652{position:fixed!important;top:27%!important;left:50%!important;transform:translateX(-50%)!important;color:#fff1b8!important;text-shadow:0 0 12px #ceaa65,0 2px 4px #142b25!important;font-size:27px!important;text-align:center!important;pointer-events:none!important;opacity:0!important;transition:opacity .3s!important;z-index:90!important;width:90vw!important}#phaseNotice652.on{opacity:1!important}@media(max-width:760px){#bossHud652{top:125px!important;width:88vw!important}#bossHud652 strong{font-size:19px!important}.bossTrack652{height:19px!important}#phaseNotice652{top:35%!important;font-size:23px!important}}
+<head><style id="mobileMenus1021Priority">@layer mobile1021;</style><style>@layer developer660;</style><style>@layer boss652;@layer boss652{#bossHud652{display:none!important;position:fixed!important;top:20px!important;left:50%!important;transform:translateX(-50%)!important;width:min(660px,54vw)!important;z-index:80!important;pointer-events:none!important;text-align:center!important;color:#fff1c4!important;text-shadow:0 2px 4px #142018!important}#bossHud652.on{display:block!important}#bossHud652 strong{font-size:25px!important;letter-spacing:.03em!important}#bossHud652 small{display:block!important;font-size:15px!important;margin-top:6px!important}.bossTrack652{height:24px!important;position:relative!important;border:2px solid #ead69a!important;background:#263832e8!important;border-radius:7px!important;overflow:hidden!important;box-shadow:0 0 15px #e4b56444!important}.bossTrack652 i{display:block!important;height:100%!important;background:linear-gradient(90deg,#b54646,#f98d76)!important;transition:width .25s ease!important}.bossTrack652:before,.bossTrack652:after{content:""!important;position:absolute!important;top:0!important;bottom:0!important;width:2px!important;background:#fff0b4!important;z-index:2!important}.bossTrack652:before{left:33.333%!important}.bossTrack652:after{left:66.666%!important}body.bossFight652 #questHud,body.bossFight652 #questPanel{opacity:0!important;pointer-events:none!important}#phaseNotice652{position:fixed!important;top:27%!important;left:50%!important;transform:translateX(-50%)!important;color:#fff1b8!important;text-shadow:0 0 12px #ceaa65,0 2px 4px #142b25!important;font-size:27px!important;text-align:center!important;pointer-events:none!important;opacity:0!important;transition:opacity .3s!important;z-index:90!important;width:90vw!important}#phaseNotice652.on{opacity:1!important}@media(max-width:760px){#bossHud652{top:125px!important;width:88vw!important}#bossHud652 strong{font-size:19px!important}.bossTrack652{height:19px!important}#phaseNotice652{top:35%!important;font-size:23px!important}}
 body.bossFight652 #questBox{opacity:0!important;pointer-events:none!important}
 }</style><style>@layer v645; @layer v645 {body #avatarRadial624 .radialBtn624{--ry:0px!important;left:50%!important;top:50%!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;width:56px!important;height:56px!important;min-width:56px!important;min-height:56px!important;padding:9px!important;transform:translate(calc(-50% + var(--rx)), -50%)!important}
 body #avatarRadial624 .radialBtn624:hover{transform:translate(calc(-50% + var(--rx)), -50%) scale(1.08)!important}
@@ -22132,5 +22132,290 @@ version();requestAnimationFrame(version);
 window.HTCT102={setZoom,get zoom(){return cameraZoom102},refreshFullscreen};
 })();</script>
 
+<style id="mobileMenus1021">
+@layer mobile1021{
+/* v6.102.1 — single scoped, paged mobile-landscape menu layout. Desktop HUD unchanged. */
+html.htctMobileMenu1021{--m21-padding:clamp(8px,2.3vh,16px);--m21-gap:clamp(5px,1.3vh,10px);--m21-text:clamp(11px,1.35vw,15px);--m21-label:clamp(10px,1.2vw,13px)}
+html.htctMobileMenu1021 body{overflow:hidden!important}
+html.htctMobileMenu1021 .ov{box-sizing:border-box!important}
+html.htctMobileMenu1021 .ov.on:not(#title){align-items:center!important;justify-content:center!important;padding:var(--m21-padding)!important;max-height:100dvh!important;overflow:hidden!important}
+html.htctMobileMenu1021 :is(#settings,#saveSlots,#help,#teacher,#quiz,#author615,#namePrompt,#menu).ov.on>.panel,
+html.htctMobileMenu1021 :is(#settings,#saveSlots,#help,#teacher,#quiz,#author615,#namePrompt,#menu).ov.on .authorCard615{
+  box-sizing:border-box!important;position:relative!important;inset:auto!important;transform:none!important;translate:none!important;
+  width:min(95vw,1060px)!important;max-width:95vw!important;height:calc(100dvh - 26px)!important;max-height:calc(100dvh - 26px)!important;min-height:0!important;
+  margin:auto!important;padding:42px 14px 10px!important;
+  overflow:hidden!important;scrollbar-width:none!important;
+  display:flex!important;flex-direction:column!important;gap:var(--m21-gap)!important;
+  background:linear-gradient(145deg,rgba(218,232,207,.06),transparent 60%),rgba(12,39,43,var(--glass-alpha,.42))!important;
+  border:1px solid rgba(218,190,129,.72)!important;border-radius:16px!important;
+  box-shadow:inset 0 1px rgba(255,246,207,.20),0 5px 18px rgba(0,15,19,.24)!important;
+  backdrop-filter:blur(var(--glass-blur,8px))!important;
+}
+html.htctMobileMenu1021 :is(#settings,#help,#teacher).ov.on>.sectionHeading,
+html.htctMobileMenu1021 #menu.ov.on>.overlayHeading{
+  position:absolute!important;top:var(--m21-padding)!important;left:50%!important;transform:translateX(-50%)!important;max-width:56vw!important;
+  margin:0!important;padding:0!important;font-size:clamp(17px,3.2vh,24px)!important;line-height:1.15!important;letter-spacing:.05em!important;
+  height:auto!important;z-index:5!important;pointer-events:none!important;white-space:nowrap!important;
+}
+html.htctMobileMenu1021 :is(#settings,#saveSlots,#help,#teacher,#quiz,#author615,#namePrompt,#menu) .panel>.qhead,
+html.htctMobileMenu1021 #author615 .authorCard615>.qhead{position:absolute!important;top:6px!important;right:9px!important;left:auto!important;bottom:auto!important;
+  width:auto!important;height:30px!important;min-height:30px!important;margin:0!important;padding:0!important;z-index:8!important;transform:none!important;justify-content:flex-end!important;align-items:center!important;background:transparent!important}
+html.htctMobileMenu1021 :is(#settings,#saveSlots,#help,#teacher,#quiz,#author615,#namePrompt,#menu) .qhead button,
+html.htctMobileMenu1021 #author615 .qhead button{min-height:29px!important;max-height:31px!important;height:30px!important;min-width:65px!important;
+  font-size:var(--m21-label)!important;line-height:1.1!important;padding:5px 9px!important;position:static!important;transform:none!important;white-space:nowrap!important}
+html.htctMobileMenu1021 :is(#settings,#saveSlots,#help,#teacher,#quiz,#author615,#namePrompt,#menu) :is(.btn,.ghost,.toggle){
+  min-height:30px!important;max-height:44px!important;height:auto!important;padding:7px 10px!important;font-size:var(--m21-text)!important;line-height:1.14!important;
+  white-space:normal!important;overflow-wrap:break-word!important;word-break:normal!important;flex-shrink:0!important;
+}
+html.htctMobileMenu1021 :is(#settings,#saveSlots,#help,#teacher,#quiz,#author615,#namePrompt,#menu) :is(h2,h3,p,label,.sub,.keys,.jd,.slotName,.slotMeta){
+  font-size:var(--m21-text)!important;line-height:1.24!important;white-space:normal!important;overflow-wrap:anywhere!important;margin-top:0!important;margin-bottom:4px!important;min-width:0!important;
+}
+html.htctMobileMenu1021 :is(#settings,#saveSlots,#help,#teacher,#quiz,#author615,#namePrompt,#menu) :is(input,select,textarea){font-size:var(--m21-text)!important;min-height:29px!important;max-width:100%!important;box-sizing:border-box!important}
+/* Main screen: a two-column fantasy title and 2x3 menu, no scroll. */
+html.htctMobileMenu1021 #title,#title.ov.on{overflow:hidden!important;max-height:100dvh!important;padding:0!important}
+html.htctMobileMenu1021 #title.ov.on>.panel{
+  box-sizing:border-box!important;position:relative!important;width:100%!important;max-width:100%!important;height:100dvh!important;min-height:0!important;max-height:100dvh!important;
+  margin:0!important;padding:clamp(12px,3vh,20px) clamp(18px,3.3vw,40px)!important;overflow:hidden!important;
+  display:grid!important;grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr)!important;grid-template-rows:minmax(0,1fr)!important;
+  align-items:center!important;justify-content:center!important;gap:clamp(12px,3vw,30px)!important;background:none!important;border:0!important;box-shadow:none!important;
+}
+html.htctMobileMenu1021 #title .logo{
+  grid-column:1!important;grid-row:1!important;position:static!important;transform:none!important;max-width:100%!important;
+  margin:0!important;padding:0!important;font-family:var(--display)!important;
+  font-size:clamp(26px,4.4vw,50px)!important;line-height:1.06!important;letter-spacing:.005em!important;text-align:center!important;
+  text-wrap:balance!important;white-space:normal!important;overflow-wrap:normal!important;
+}
+html.htctMobileMenu1021 #title .logoSub{display:block!important;position:static!important;font-size:1.08em!important;line-height:1.06!important;letter-spacing:clamp(1px,.35vw,4px)!important;margin:6px 0 0!important;white-space:nowrap!important}
+html.htctMobileMenu1021 #title .menuBtns{
+  grid-column:2!important;grid-row:1!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-flow:row!important;
+  grid-auto-rows:minmax(0,1fr)!important;align-content:center!important;justify-content:stretch!important;align-items:stretch!important;
+  width:100%!important;height:auto!important;max-height:min(78dvh,320px)!important;max-width:100%!important;margin:0!important;padding:0!important;
+  gap:clamp(6px,1.8vh,10px)!important;animation:none!important;
+}
+html.htctMobileMenu1021 #title .menuBtns .btn{
+  box-sizing:border-box!important;position:relative!important;min-width:0!important;width:100%!important;height:clamp(36px,11vh,48px)!important;
+  min-height:0!important;max-height:none!important;margin:0!important;padding:5px 7px!important;
+  font-size:clamp(12px,1.7vw,17px)!important;line-height:1.15!important;letter-spacing:0!important;
+  border:1px solid rgba(226,211,155,.85)!important;border-radius:11px!important;
+  background:linear-gradient(140deg,rgba(116,166,138,.24),rgba(14,58,56,.7))!important;
+  box-shadow:inset 0 1px rgba(255,246,207,.3),0 3px 10px #00131950!important;
+  text-align:center!important;white-space:normal!important;overflow-wrap:anywhere!important;
+}
+html.htctMobileMenu1021 #title .menuBtns [data-fullscreen]{display:none!important}
+/* Save selection: compact cards in one row, footer always visible. */
+html.htctMobileMenu1021 #saveSlots .panel{justify-content:flex-start!important}
+html.htctMobileMenu1021 #saveSlots .qhead{right:8px!important;left:12px!important;width:calc(100% - 20px)!important;justify-content:space-between!important}
+html.htctMobileMenu1021 #saveSlots #saveSlotsTitle{font-size:clamp(16px,3vh,20px)!important;margin:0!important;max-width:65%!important}
+html.htctMobileMenu1021 #saveSlots .saveModeHint{flex:none!important;font-size:var(--m21-label)!important;line-height:1.2!important;margin:0!important;padding:0!important}
+html.htctMobileMenu1021 #saveSlotList{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:clamp(7px,2vw,16px)!important;flex:1!important;min-height:0!important;
+  width:100%!important;max-height:100%!important;padding:2px!important;margin:0!important;overflow:hidden!important}
+html.htctMobileMenu1021 #saveSlotList .portal614{height:100%!important;min-height:0!important;max-height:100%!important;display:flex!important;flex-direction:column!important;justify-content:center!important;
+  gap:2px!important;padding:5px 7px!important;min-width:0!important;border-radius:12px!important;overflow:hidden!important}
+html.htctMobileMenu1021 #saveSlotList :is(.portalArt614,canvas,img){width:auto!important;height:auto!important;max-width:100%!important;max-height:clamp(65px,24dvh,138px)!important;min-height:0!important;flex-shrink:1!important;object-fit:contain!important}
+html.htctMobileMenu1021 #saveSlotList :is(.slotNo,.slotMeta){font-size:clamp(10px,1.15vw,13px)!important;line-height:1.15!important;margin:0!important}
+html.htctMobileMenu1021 #saveSlotList .slotName{font-size:clamp(12px,1.5vw,17px)!important;line-height:1.16!important;min-height:0!important;margin:0!important}
+html.htctMobileMenu1021 #slotFooter614{flex:none!important;position:static!important;bottom:auto!important;min-height:0!important;max-height:48px!important;padding:2px!important;margin:0!important;overflow:hidden!important}
+/* Modal panel pagination/navigation. */
+html.htctMobileMenu1021 .m21Tabs,html.htctMobileMenu1021 .m21Pager{box-sizing:border-box!important;display:flex!important;justify-content:center!important;align-items:center!important;gap:6px!important;
+  flex:none!important;width:100%!important;max-width:100%!important;min-height:26px!important;max-height:34px!important;margin:0!important;padding:0!important;overflow:hidden!important}
+html.htctMobileMenu1021 :is(.m21Tabs,.m21Pager) button{min-width:0!important;min-height:26px!important;height:28px!important;max-height:29px!important;flex:1 1 auto!important;padding:5px 8px!important;
+  border:1px solid rgba(217,195,142,.62)!important;background:rgba(27,67,60,.54)!important;border-radius:8px!important;color:#f4ead0!important;
+  font-size:clamp(10px,1.1vw,13px)!important;line-height:1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;cursor:pointer!important}
+html.htctMobileMenu1021 :is(.m21Tabs,.m21Pager) button[aria-selected="true"]{background:rgba(165,162,102,.3)!important;border-color:#ead196!important;color:#fff5d1!important}
+html.htctMobileMenu1021 .m21Pager{margin-top:auto!important}
+html.htctMobileMenu1021 .m21Pager span{font-size:clamp(10px,1.1vw,12px)!important;color:#e7d9aa!important;white-space:nowrap!important;min-width:74px!important;text-align:center!important}
+html.htctMobileMenu1021 #settings .panel>.row{box-sizing:border-box!important;min-width:0!important;width:100%!important;max-width:100%!important;min-height:0!important;height:auto!important;flex-shrink:0!important;
+  padding:8px 10px!important;margin:0!important;gap:8px!important;display:flex!important;align-items:center!important;justify-content:space-between!important}
+html.htctMobileMenu1021 #settings .row>label{flex:0 1 36%!important;max-width:36%!important;min-width:0!important;font-size:var(--m21-text)!important;line-height:1.2!important;overflow-wrap:anywhere!important}
+html.htctMobileMenu1021 #settings .row>.btn{flex:0 1 auto!important;max-width:62%!important}
+html.htctMobileMenu1021 #settings .audioControls{flex:1!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;min-width:0!important}
+html.htctMobileMenu1021 #settings input[type=range]{min-width:40px!important;width:clamp(75px,23vw,215px)!important;max-width:28vw!important;height:24px!important}
+html.htctMobileMenu1021 #settings .volumeValue{white-space:nowrap!important;font-size:var(--m21-label)!important}
+html.htctMobileMenu1021 #glassPreferences613{min-height:0!important;max-height:calc(100dvh - 138px)!important;overflow:hidden!important;padding:4px 8px!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:4px 8px!important}
+html.htctMobileMenu1021 #glassPreferences613 :is(input,button,select){font-size:var(--m21-label)!important}
+html.htctMobileMenu1021 #settingsGuide{display:none!important}
+html.htctMobileMenu1021 #settings #collision651{align-self:flex-start!important;max-width:100%!important}
+/* Help: one illustrated lesson per page, readable and no vertical scroll. */
+html.htctMobileMenu1021 #help .panel{gap:4px!important}
+html.htctMobileMenu1021 #helpLessons{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-auto-rows:minmax(0,1fr)!important;flex:1!important;min-height:0!important;
+  padding:0!important;margin:0!important;gap:0!important;overflow:hidden!important;scrollbar-width:none!important}
+html.htctMobileMenu1021 #helpLessons .helpLesson{box-sizing:border-box!important;width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;padding:clamp(8px,1.5vh,14px)!important;margin:0!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(110px,38%)!important;grid-template-rows:minmax(0,1fr)!important;align-items:center!important;gap:clamp(6px,2vw,18px)!important;overflow:hidden!important}
+html.htctMobileMenu1021 #helpLessons .helpLesson:not(.m21Active){display:none!important}
+html.htctMobileMenu1021 #helpLessons .helpLesson :is(h3,p,kbd,.helpArrow){font-size:clamp(12px,1.7vw,18px)!important;line-height:1.3!important;margin:0!important;overflow-wrap:anywhere!important}
+html.htctMobileMenu1021 #helpLessons .helpLesson p{font-size:clamp(11px,1.5vw,15px)!important;margin-top:8px!important}
+html.htctMobileMenu1021 #helpLessons .helpLesson canvas{width:100%!important;height:100%!important;max-height:min(52dvh,235px)!important;min-height:0!important;object-fit:contain!important;justify-self:stretch!important;border-radius:12px!important}
+/* Teacher panel & in-game quizzes */
+html.htctMobileMenu1021 #teacher>.panel{gap:5px!important}
+html.htctMobileMenu1021 #teacher .teacherView:not([hidden]){display:flex!important;flex:1!important;min-height:0!important;flex-direction:column!important;gap:5px!important;overflow:hidden!important}
+html.htctMobileMenu1021 #teacher .teacherView[hidden]{display:none!important}
+html.htctMobileMenu1021 #teacher :is(.teacherToolbar,.btns){flex:none!important;display:flex!important;align-items:center!important;gap:6px!important;margin:0!important;padding:0!important;min-height:0!important}
+html.htctMobileMenu1021 #teacher .teacherToolbar :is(b,p){font-size:var(--m21-text)!important;margin:0!important}
+html.htctMobileMenu1021 #teacher .teacherToolbar .sub{font-size:var(--m21-label)!important}
+html.htctMobileMenu1021 #teacher :is(#qSetList,#qQuestionList){flex:1!important;min-height:0!important;max-height:100%!important;overflow:hidden!important;padding:0!important;margin:0!important;gap:5px!important}
+html.htctMobileMenu1021 #teacher #qSetHome .btns{flex-wrap:nowrap!important}
+html.htctMobileMenu1021 #teacher .teacherInput{min-height:29px!important;height:auto!important;max-height:68px!important;width:100%!important;padding:5px 8px!important;margin:0!important;box-sizing:border-box!important;font-size:var(--m21-text)!important}
+html.htctMobileMenu1021 #teacher textarea.teacherInput{height:54px!important;min-height:46px!important;resize:none!important}
+html.htctMobileMenu1021 #teacher #qQuestionEditor>.btns{margin-top:auto!important}
+html.htctMobileMenu1021 #teacher #qDynamicFields{flex:1!important;min-height:0!important;max-height:100%!important;overflow:hidden!important}
+html.htctMobileMenu1021 #quiz .panel{gap:5px!important}
+html.htctMobileMenu1021 #quiz :is(#qmeta,#qdots,#qfb,#qexplain){font-size:clamp(11px,1.35vw,14px)!important;line-height:1.22!important;margin:0!important;padding:0!important;white-space:normal!important;overflow-wrap:anywhere!important;min-height:0!important}
+html.htctMobileMenu1021 #quiz #qtext{font-size:clamp(12px,2.1vw,19px)!important;line-height:1.27!important;max-height:24dvh!important;min-height:0!important;overflow:hidden!important;flex:none!important;margin:0!important;padding:0!important}
+html.htctMobileMenu1021 #quiz #qopts{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:minmax(34px,auto)!important;gap:6px!important;
+  flex:1!important;min-height:0!important;overflow:hidden!important;padding:0!important;margin:0!important}
+html.htctMobileMenu1021 #quiz #qopts :is(button,.opt){box-sizing:border-box!important;min-height:35px!important;max-height:calc(34dvh/2)!important;height:auto!important;
+  padding:6px 8px!important;margin:0!important;font-size:clamp(11px,1.5vw,15px)!important;line-height:1.22!important;
+  white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;overflow:hidden!important;max-width:100%!important}
+/* Author: compressed 2-column editorial card, no scrolling. */
+html.htctMobileMenu1021 #author615 .authorCard615{height:calc(100dvh - 26px)!important;max-height:calc(100dvh - 26px)!important}
+html.htctMobileMenu1021 #authorBody619{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:auto auto minmax(0,1fr) auto!important;
+  flex:1!important;height:auto!important;max-height:100%!important;min-height:0!important;gap:2px 12px!important;
+  padding:0 3px!important;margin:0!important;overflow:hidden!important;align-items:center!important}
+html.htctMobileMenu1021 #authorBody619 .authorMark615{grid-area:1 / 1 / 2 / 3!important;margin:0!important;height:auto!important;font-size:16px!important;text-align:center!important;line-height:1!important}
+html.htctMobileMenu1021 #authorBody619>h2{grid-area:2 / 1 / 3 / 2!important;margin:0!important;align-self:center!important;text-align:right!important;font-size:clamp(19px,3vh,24px)!important}
+html.htctMobileMenu1021 #authorBody619>.authorSubtitle615{grid-area:2 / 2 / 3 / 3!important;margin:0!important;text-align:left!important;font-size:clamp(11px,1.4vw,14px)!important}
+html.htctMobileMenu1021 #authorBody619>section{box-sizing:border-box!important;align-self:stretch!important;min-height:0!important;overflow:hidden!important;
+  margin:0!important;padding:8px 10px!important;border-radius:10px!important}
+html.htctMobileMenu1021 #authorBody619>section:nth-of-type(1){grid-area:3 / 1 / 4 / 2!important}
+html.htctMobileMenu1021 #authorBody619>section:nth-of-type(2){grid-area:3 / 2 / 4 / 3!important}
+html.htctMobileMenu1021 #authorBody619 section h3{font-size:clamp(12px,1.5vw,16px)!important;margin:0 0 3px!important}
+html.htctMobileMenu1021 #authorBody619 section p{font-size:clamp(11px,1.25vw,14px)!important;line-height:1.25!important;margin:0!important}
+html.htctMobileMenu1021 #authorBody619 .authorThanks615{grid-area:4 / 1 / 5 / 3!important;text-align:center!important;margin:0!important;font-size:clamp(11px,1.3vw,13px)!important}
+/* Compact name prompt and pause screen. */
+html.htctMobileMenu1021 #namePrompt .panel{justify-content:center!important;align-items:center!important;gap:7px!important}
+html.htctMobileMenu1021 #namePrompt .panel :is(h2,p,input,.btns){max-width:min(72vw,580px)!important;margin:0!important;width:auto!important}
+html.htctMobileMenu1021 #namePrompt .panel input{width:min(72vw,400px)!important}
+html.htctMobileMenu1021 #menu .panel{align-items:center!important;justify-content:center!important}
+html.htctMobileMenu1021 #menu .menuBtns{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;width:100%!important;margin:0!important;max-height:calc(100% - 35px)!important;overflow:hidden!important}
+html.htctMobileMenu1021 #menu .menuBtns .btn{width:100%!important;max-width:100%!important;min-height:34px!important;height:clamp(34px,7vh,42px)!important;align-self:center!important}
+html.htctMobileMenu1021 #menu .keys{margin:0!important;padding:0!important;text-align:center!important;font-size:clamp(10px,1.2vw,12px)!important;white-space:normal!important}
+@media (max-height:400px){
+  html.htctMobileMenu1021 :is(#settings,#saveSlots,#help,#teacher,#quiz,#author615,#namePrompt,#menu).ov.on>.panel{height:calc(100dvh - 14px)!important;max-height:calc(100dvh - 14px)!important;padding:36px 10px 7px!important;gap:3px!important}
+  html.htctMobileMenu1021 #title.ov.on>.panel{padding:8px 15px!important}
+  html.htctMobileMenu1021 #title .logo{font-size:clamp(25px,4.1vw,34px)!important}
+  html.htctMobileMenu1021 #title .menuBtns .btn{height:clamp(34px,11vh,42px)!important;font-size:clamp(12px,1.5vw,15px)!important}
+  html.htctMobileMenu1021 #authorBody619 section p{font-size:11px!important}
+  html.htctMobileMenu1021 #teacher .teacherToolbar .sub{display:none!important}
+  html.htctMobileMenu1021 #saveSlotList :is(.portalArt614,canvas,img){max-height:clamp(50px,22dvh,90px)!important}
+}
+html.htctMobileMenu1021 #settings .panel>[data-m21-page]:not(.m21Active){display:none!important}
+html.htctMobileMenu1021 #teacher #qQuestionEditor>[data-m21-step]:not(.m21Active){display:none!important}
+html.htctMobileMenu1021 #teacher :is(#qSetList,#qQuestionList,#qDynamicFields)>.m21Hidden{display:none!important}
+html.htctMobileMenu1021 #title.ov.on{display:flex!important;align-items:center!important;justify-content:center!important;width:100vw!important;height:100dvh!important;max-width:100vw!important}
+html.htctMobileMenu1021 #title.ov.on>.panel{width:100vw!important;min-width:100vw!important;max-width:100vw!important;flex:0 0 100vw!important;display:grid!important}
+/* Strict modal ownership: no visually hidden overlay may remain tappable. */
+html.htctMobileMenu1021 .ov:not(.on){display:none!important;pointer-events:none!important}
+/* Fullscreen is accessible from Settings; remove the duplicate floating main-menu control. */
+html.htctMobileMenu1021 #titleFullscreen629{display:none!important;pointer-events:none!important}
+/* Save previews: no metadata may spill into the next card. */
+html.htctMobileMenu1021 #saveSlots .qhead #saveSlotsTitle{font-size:clamp(14px,2.5vh,18px)!important;line-height:1.1!important;text-align:left!important;max-width:75%!important;width:auto!important;white-space:normal!important;overflow-wrap:anywhere!important}
+html.htctMobileMenu1021 #saveSlots .saveModeHint{font-size:clamp(10px,1.3vw,12px)!important;margin-top:3px!important;margin-bottom:3px!important}
+html.htctMobileMenu1021 #saveSlotList .portal614{position:relative!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;align-items:center!important;text-align:center!important;white-space:normal!important}
+html.htctMobileMenu1021 #saveSlotList .portalArt614{display:block!important;flex:0 0 auto!important;align-self:center!important;
+  width:clamp(45px,12vh,82px)!important;height:clamp(45px,12vh,82px)!important;max-width:90%!important;max-height:28dvh!important;
+  background-size:cover!important;border-radius:11px!important;position:static!important;inset:auto!important;transform:none!important;margin:0 0 3px!important}
+html.htctMobileMenu1021 #saveSlotList :is(.slotNo,.slotName,.slotMeta){display:block!important;position:static!important;inset:auto!important;transform:none!important;flex:0 1 auto!important;max-width:100%!important;width:100%!important;
+  min-width:0!important;height:auto!important;max-height:none!important;margin:0!important;padding:0!important;text-align:center!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;text-overflow:clip!important}
+html.htctMobileMenu1021 #saveSlotList .slotMeta{font-size:clamp(10px,1.1vw,12px)!important;line-height:1.2!important}
+html.htctMobileMenu1021 #saveSlotList .devBadge6470{font-size:clamp(10px,1.1vw,12px)!important;padding:3px 5px!important;line-height:1!important}
+html.htctMobileMenu1021 #saveSlotList .portal614.devSlot6470 .slotMeta::after{
+  content:"\A Preset cố định · Không lưu tiến trình"!important;
+  display:block!important;max-width:100%!important;width:auto!important;
+  font-size:clamp(10px,1.2vw,12px)!important;line-height:1.16!important;
+  white-space:pre-wrap!important;overflow-wrap:anywhere!important;word-break:normal!important;
+  text-align:center!important;margin-top:2px!important;color:#f1dca4!important
+}
+html.htctMobileMenu1021 #teacher #qDynamicFields .qFieldGroup{display:flex!important;flex-direction:column!important;justify-content:flex-start!important;
+  gap:clamp(3px,.9vh,6px)!important;margin:0!important;padding:0!important;min-height:0!important;max-height:100%!important;overflow:hidden!important}
+html.htctMobileMenu1021 #teacher #qDynamicFields .qOptionRow{box-sizing:border-box!important;display:flex!important;align-items:center!important;
+  gap:7px!important;min-height:clamp(26px,7.4vh,34px)!important;height:clamp(26px,7.4vh,34px)!important;
+  max-height:34px!important;margin:0!important;padding:1px 3px!important;flex-shrink:0!important;overflow:hidden!important}
+html.htctMobileMenu1021 #teacher #qDynamicFields .qOptionRow input[type=radio]{width:17px!important;height:17px!important;min-width:17px!important;min-height:17px!important;flex:0 0 17px!important;margin:0!important}
+html.htctMobileMenu1021 #teacher #qDynamicFields .qOptionRow .teacherInput{height:clamp(25px,7vh,31px)!important;min-height:0!important;max-height:31px!important;
+  flex:1!important;min-width:0!important;margin:0!important;padding:3px 9px!important}
+
+}
+</style>
+<script id="mobileMenus1021Script">
+/* v6.102.1: paged mobile menus. All handlers/data stay on original DOM nodes. */
+(()=>{'use strict';
+ const mm=matchMedia('(pointer:coarse) and (orientation:landscape) and (max-height:720px)');
+ const $=id=>document.getElementById(id);
+ const state={settings:0,help:0,lists:{},question:0};
+ function active(){return mm.matches}
+ function syncMode(){document.documentElement.classList.toggle('htctMobileMenu1021',active());if(active()){updateSettings();updateHelp();updateLists();}}
+ function button(text,cb,extra=''){const b=document.createElement('button');b.type='button';b.textContent=text;b.className='m21Button '+extra;b.addEventListener('click',cb);return b}
+ function makeTabs(holder,names,onSelect){const nav=document.createElement('nav');nav.className='m21Tabs';nav.setAttribute('aria-label','Chuyển mục');names.forEach((name,i)=>{const b=button(name,()=>onSelect(i));b.dataset.index=i;nav.append(b)});holder.append(nav);return nav}
+ function updateTab(nav,current){if(!nav)return;[...nav.children].forEach((el,i)=>el.setAttribute('aria-selected',i===current?'true':'false'))}
+ function makePager(holder,onChange){const nav=document.createElement('nav');nav.className='m21Pager';nav.setAttribute('aria-label','Chuyển trang');
+  const prev=button('‹ Trước',()=>onChange(-1));const pos=document.createElement('span');const next=button('Tiếp ›',()=>onChange(1));nav.append(prev,pos,next);holder.append(nav);return{nav,prev,pos,next}}
+ function setPager(pager,index,total){if(!pager)return;pager.nav.hidden=!active()||total<=1;pager.nav.style.display=!active()||total<=1?'none':'';pager.prev.disabled=index<=0;pager.next.disabled=index>=total-1;pager.pos.textContent=`${index+1} / ${total}`}
+ const settingsNames=['Giao diện','Âm thanh','Điều khiển','Màn hình','Dữ liệu'];let settingsNav;
+ function classifySetting(node,index){if(node.id==='glassPreferences613')return 0;if(node.id==='settingDisplayRow972'||node.id==='hudSetting1001')return 2;
+  if(node.id==='cameraZoomRow102'||node.id==='fullscreenSettingRow102')return 3;
+  if(node.id==='importFile'||node.id==='collision651'||node.id==='settingsGuide')return 4;
+  const content=node.textContent?.toLowerCase()||'';
+  if(/nhạc nền|âm thanh|hiệu ứng hình ảnh/.test(content))return 1;
+  if(/giao diện ui|liquid glass|chất liệu kính|chủ đề giao diện/.test(content))return 0;
+  if(/góc nhìn|toàn màn hình/.test(content))return 3;
+  if(/xuất|tải tiến độ|kiểm tra va chạm|nhập/.test(content))return 4;
+  return index===0?0:4;
+ }
+ function updateSettings(){const panel=$('settings')?.querySelector('.panel');if(!panel)return;
+  if(!settingsNav){settingsNav=makeTabs(panel,settingsNames,i=>{state.settings=i;updateSettings()});panel.querySelector('.qhead')?.after(settingsNav)}
+  let index=0;
+  for(const node of [...panel.children]){if(node===settingsNav||node.classList.contains('qhead'))continue;
+    if(node.tagName==='SCRIPT'||node.tagName==='STYLE')continue;
+    const p=classifySetting(node,index++);node.dataset.m21Page=p;node.classList.toggle('m21Active',p===state.settings);
+  }
+  updateTab(settingsNav,state.settings);
+ }
+ let helpPager;
+ function updateHelp(){const host=$('helpLessons');if(!host)return;const rows=[...host.children].filter(el=>el.classList.contains('helpLesson'));
+  if(!helpPager){const panel=$('help')?.querySelector('.panel');if(panel)helpPager=makePager(panel,d=>{state.help=Math.max(0,Math.min(rows.length-1,state.help+d));updateHelp()})}
+  state.help=Math.max(0,Math.min(rows.length-1,state.help));rows.forEach((row,i)=>row.classList.toggle('m21Active',i===state.help));setPager(helpPager,state.help,rows.length);
+ }
+ const listIds=['qSetList','qQuestionList','qDynamicFields'];const listCfg={qSetList:2,qQuestionList:3,qDynamicFields:3};
+ function updateList(id){const host=$(id);if(!host)return;const items=[...host.children].filter(x=>!x.classList.contains('m21Pager')&&x.tagName!=='SCRIPT');const cap=listCfg[id]||3;
+  const max=Math.max(1,Math.ceil(items.length/cap));let pageIndex=Math.max(0,Math.min(max-1,state.lists[id]||0));state.lists[id]=pageIndex;
+  items.forEach((x,i)=>x.classList.toggle('m21Hidden',!(i>=pageIndex*cap&&i<(pageIndex+1)*cap)));
+  const info=host._m21Pager;if(info)setPager(info,pageIndex,max);
+ }
+ function updateLists(){for(const id of listIds)updateList(id)}
+ function initList(id){const host=$(id);if(!host||host._m21Pager)return;
+  const pager=makePager(host.parentElement,d=>{state.lists[id]=Math.max(0,(state.lists[id]||0)+d);updateList(id)});
+  host.after(pager.nav);host._m21Pager=pager;
+  new MutationObserver(()=>{if(active())updateList(id)}).observe(host,{childList:true});
+  updateList(id)
+ }
+ let editorTabs;
+ function updateQuestionStep(){const ed=$('qQuestionEditor');if(!ed)return;if(!editorTabs){editorTabs=makeTabs(ed,['Nội dung','Đáp án','Giải thích'],i=>{state.question=i;updateQuestionStep()});ed.querySelector('.teacherToolbar')?.after(editorTabs)}
+  const children=[...ed.children];let step=0;
+  for(const node of children){if(node===editorTabs||node.classList.contains('teacherToolbar')||node.classList.contains('btns')||node.id==='qEditorFb')continue;
+    if(node.id==='qDynamicFields'){node.dataset.m21Step='1';step=2;}
+    else if(node.id==='qExplanation'||(step===2&&node.tagName==='LABEL'))node.dataset.m21Step='2';
+    else node.dataset.m21Step='0';
+    node.classList.toggle('m21Active',node.dataset.m21Step===String(state.question));
+  }
+  updateTab(editorTabs,state.question);
+ }
+ function onOpen(){if(!active())return;updateSettings();updateHelp();updateLists();updateQuestionStep()}
+ function version(){try{CFG.version='6.102.1'}catch(_){}try{HTCT.version='6.102.1'}catch(_){}document.title='Hành Trình Cổ Thư — v6.102.1';document.querySelectorAll('.ver').forEach(el=>el.textContent=el.textContent.replace(/6\.102\.0/g,'6.102.1'))}
+ // Scoped behavior: no page navigation or desktop controls changed.
+ for(const id of ['settings','help','teacher','saveSlots','quiz','author615','namePrompt','title']){
+  const e=$(id);if(!e)continue;
+  new MutationObserver(mutations=>{if(mutations.some(x=>x.attributeName==='class'&&e.classList.contains('on'))){
+     if(id==='help')state.help=0;
+     if(id==='settings')state.settings=0;
+     onOpen();}
+  }).observe(e,{attributes:true,attributeFilter:['class']});
+ }
+ mm.addEventListener?.('change',syncMode);addEventListener('resize',syncMode,{passive:true});
+ initList('qSetList');initList('qQuestionList');initList('qDynamicFields');
+ updateQuestionStep();syncMode();version();requestAnimationFrame(()=>{syncMode();version()});setTimeout(version,250);setTimeout(version,1500);addEventListener('pageshow',version);
+ window.MOBILE_MENU1021={active,syncMode,updateSettings,updateHelp,updateLists};
+})();
+
+</script>
 </body>
 </html>
