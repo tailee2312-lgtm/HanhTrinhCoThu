@@ -2077,6 +2077,7 @@ window.addEventListener('unhandledrejection',function(event){window.reportGameEr
     <button class="btn alt" id="mHelp">Hướng dẫn</button>
     <button class="btn alt" data-fullscreen>Toàn màn hình</button>
         <button class="btn alt" id="mTitle">Về menu chính</button>
+        <button class="btn alt" id="fullscreenMenu102" type="button">Toàn màn hình</button>
   </div>
   <p class="keys">WASD / mũi tên · Shift chạy · E tương tác · Chuột trái / Space tấn công · I túi đồ · Esc menu</p>
 </div></div>
@@ -2144,6 +2145,8 @@ window.addEventListener('unhandledrejection',function(event){window.reportGameEr
   <div class="row"><label for="sfxLevel">Hiệu ứng âm thanh</label><div class="audioControls"><button class="btn alt toggle" id="setSound" aria-label="Bật tắt hiệu ứng âm thanh">Bật</button><input type="range" id="sfxLevel" min="0" max="100" step="1" value="75" aria-label="Âm lượng hiệu ứng"><span class="volumeValue" id="sfxLevelText">75%</span></div></div>
   <div class="row"><label>Hiệu ứng hình ảnh</label><button class="btn alt toggle" id="setFx">Bật</button></div>
   <div class="row" id="settingDisplayRow972"><label>Hiển thị</label><button class="btn alt" id="settingsDisplay972" type="button">Tùy chỉnh hiển thị &amp; hồ sơ</button></div>
+  <div class="row" id="cameraZoomRow102"><label for="cameraZoom102">Góc nhìn camera</label><select class="inp" id="cameraZoom102" aria-label="Phóng to góc nhìn"><option value="1">100%</option><option value="1.1">110% (mặc định)</option><option value="1.2">120%</option></select></div>
+  <div class="row" id="fullscreenSettingRow102"><label>Toàn màn hình</label><button class="btn alt" type="button" id="fullscreenSettings102">Toàn màn hình</button></div>
   <div class="row"><label>Xuất / tải tiến độ</label>
     <span style="display:flex;gap:8px">
       <button class="btn alt toggle" id="setExport">Xuất</button>
@@ -3070,13 +3073,16 @@ try{Snd.on=localStorage.getItem(CFG.saveKey+':snd')!=='0';Snd.musicOn=(localStor
 
 /* ================= KÍCH THƯỚC ================= */
 let W=0,H=0,DPR=1,TS=48,PTS=48;
+const CAMERA_ZOOM_KEY102='htct-camera-zoom-102';
+function readCameraZoom102(){try{const n=Number(localStorage.getItem(CAMERA_ZOOM_KEY102));return [1,1.1,1.2].includes(n)?n:1.1}catch(_){return 1.1}}
+let cameraZoom102=readCameraZoom102();
 function resize(){
   W=Math.round(window.visualViewport?.width||innerWidth);
   H=Math.round(window.visualViewport?.height||innerHeight);
   DPR=Math.min(window.devicePixelRatio||1,2,Math.sqrt(3200000/(W*H)));
   cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
   PTS=clamp(Math.round(Math.min(W,H)/9.5),34,64);
-  TS=clamp(Math.round(Math.min(W,H)/6.2),56,96);
+  TS=Math.round(clamp(Math.round(Math.min(W,H)/6.2),56,96)*cameraZoom102);
 }
 function syncVisibleViewport(){
   document.documentElement.style.setProperty('--app-height',Math.round(window.visualViewport?.height||innerHeight)+'px');
@@ -5076,9 +5082,9 @@ function hud(){
 }
 let toastT;
 function toastPosition(){const el=$('#toast');if(!el)return;const hint=$('#hint'),st=$('#storyTip');let y=92;for(const e of [hint,st]){if(!e)continue;const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden'||parseFloat(cs.opacity||'1')<=.05)continue;const r=e.getBoundingClientRect();if(r.width>2&&r.height>2)y=Math.max(y,r.bottom+10);}el.style.top=Math.min(innerHeight-90,y)+'px';}
-function toast(m){const el=$('#toast');setIconText(el,m);el.classList.remove('toastQuest','toastSuccess','toastWarn');const t=String(m||'');if(/Nhặt|Nhiệm vụ|Đã nhận|mảnh giấy|Lá cổ/i.test(t))el.classList.add('toastQuest');else if(/Hoàn thành|Đã mở|thành công|Đã tải/i.test(t))el.classList.add('toastSuccess');else if(/không|Hãy|Cần|chưa/i.test(t))el.classList.add('toastWarn');toastPosition();el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),2600);}
+function toast(m){return;const el=$('#toast');setIconText(el,m);el.classList.remove('toastQuest','toastSuccess','toastWarn');const t=String(m||'');if(/Nhặt|Nhiệm vụ|Đã nhận|mảnh giấy|Lá cổ/i.test(t))el.classList.add('toastQuest');else if(/Hoàn thành|Đã mở|thành công|Đã tải/i.test(t))el.classList.add('toastSuccess');else if(/không|Hãy|Cần|chưa/i.test(t))el.classList.add('toastWarn');toastPosition();el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),2600);}
 const floats=[];
-function floatText(x,y,txt){floats.push({x,y,t:0,txt});}
+function floatText(x,y,txt){/* quiet combat: particle feedback remains */}
 
 /* v3.14.5: tutorial flow, challenge/sign sprites, quest guide polish. */
 /* ================= HỘI THOẠI ================= */
@@ -5516,6 +5522,7 @@ document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('gesturestart',e=>e.preventDefault());
 
 function setHint(txt){
+  if(txt&&!near)txt='';
   const el=$('#hint');
   if(txt){setIconText(el,(isTouch||document.body.classList.contains('touch')?'':'[E] ')+txt);el.classList.add('on');}
   else el.classList.remove('on');
@@ -18623,7 +18630,7 @@ function drawGardenPreview(cx,cy,clock){if(!branchPreview.length)return;ctx.save
 function drawMemoryVeil(cx,cy,clock){if(!active()||cfg()?.phase5Enabled===false||cfg()?.phase5Veil===false)return;const floor=B()?.floor;if(!(floor instanceof Set))return;ctx.save();for(const k of floor){const[x,y]=k.split(',').map(Number);if(nearestRegion(x+.5,y+.5)!=='memory')continue;const rr=rec(k);if(rr?.state===N().STATES.STABLE)continue;const d=Math.hypot(x+.5-P.x,y+.5-P.y);if(d<2.7)continue;const sx=x*TS-cx,sy=y*TS-cy;if(sx>W||sy>H||sx+TS<0||sy+TS<0)continue;const fade=clamp((d-2.7)/3.2,0,1);ctx.globalAlpha=.32+.52*fade;ctx.fillStyle='#03030a';ctx.fillRect(sx,sy,TS,TS);ctx.globalAlpha=.06+.08*Math.sin(clock*2+x*.2+y*.3);ctx.strokeStyle='#ef87d8';ctx.strokeRect(sx+2,sy+2,TS-4,TS-4)}ctx.restore()}
 function drawHeartPulse(cx,cy,clock){if(!active()||cfg()?.phase5Enabled===false||cfg()?.phase5Pulse===false||nearestRegion()!=='heart')return;const PERIOD=3.6,t=(pulseClock%PERIOD)/PERIOD,x=31*TS-cx,y=68*TS-cy;ctx.save();ctx.globalAlpha=.12+.22*(1-t);ctx.strokeStyle='#d9fcff';ctx.lineWidth=Math.max(1.5,TS*.025);ctx.beginPath();ctx.arc(x,y,TS*(1.0+t*5.2),0,Math.PI*2);ctx.stroke();if(pulseFlash>0){ctx.globalAlpha=.10*clamp(pulseFlash/.55,0,1);ctx.fillStyle='#d9fcff';ctx.fillRect(0,0,W,H)}ctx.restore()}
 function hookUnderActors(){const p=window.NEON_PHASE2_6690;if(!p||p.__phase5Hooked)return false;const prev=p.drawTilesUnderActors;p.drawTilesUnderActors=function(cx,cy,clock){const r=prev?.apply(this,arguments);drawGardenPreview(cx,cy,clock);drawMemoryVeil(cx,cy,clock);drawHeartPulse(cx,cy,clock);return r};p.__phase5Hooked=true;return true}
-function regionToast(){const id=nearestRegion();if(id===lastRegion)return;lastRegion=id;const p=PROFILES[id];if(!p)return;try{toast(p.name+' · '+p.note)}catch(_){}}
+function regionToast(){const id=nearestRegion();if(id===lastRegion)return;lastRegion=id;const p=PROFILES[id];if(!p)return;try{showAreaTitle(p.name,p.note)}catch(_){}}
 function updatePhase5(dt){if(!active()||cfg()?.phase5Enabled===false)return;syncTransitionDurations();updateGardenBranches();updateHeartPulse(dt);pulseFlash=Math.max(0,pulseFlash-dt);regionToast()}
 function upgradeDev(){const d=document.getElementById('devNeon670');if(!d||document.getElementById('devNeonPhase5_6720'))return false;const sm=d.querySelector('summary');if(sm)sm.textContent='💠 Làng Tinh Linh · Phase 5';const info=document.getElementById('devNeonInfo670'),w=document.createElement('div');w.id='devNeonPhase5_6720';w.innerHTML=`<hr><b>🧭 Gameplay theo từng vùng</b><label><span><input id="devP5On6720" type="checkbox"> Bật gameplay Phase 5</span></label><label><span><input id="devP5Branch6720" type="checkbox"> Vườn: hiển thị nhánh lựa chọn</span></label><label><span><input id="devP5Veil6720" type="checkbox"> Hồ Ký Ức: địa hình chỉ lộ khi tới gần</span></label><label><span><input id="devP5Pulse6720" type="checkbox"> Lõi Tinh Linh: xung Core đẩy nhanh phân rã</span></label><label>Preview profile vùng<select id="devP5Region6720"><option value="auto">Tự động theo vị trí</option>${Object.entries(PROFILES).map(([id,p])=>`<option value="${id}">${p.name}</option>`).join('')}</select></label><small id="devP5Info6720"></small>`;d.insertBefore(w,info||null);const q=id=>document.getElementById(id),s=cfg(),inf=q('devP5Info6720');q('devP5On6720').checked=s.phase5Enabled!==false;q('devP5Branch6720').checked=s.phase5Branch!==false;q('devP5Veil6720').checked=s.phase5Veil!==false;q('devP5Pulse6720').checked=s.phase5Pulse!==false;q('devP5On6720').onchange=e=>s.phase5Enabled=!!e.target.checked;q('devP5Branch6720').onchange=e=>s.phase5Branch=!!e.target.checked;q('devP5Veil6720').onchange=e=>s.phase5Veil=!!e.target.checked;q('devP5Pulse6720').onchange=e=>s.phase5Pulse=!!e.target.checked;q('devP5Region6720').onchange=e=>{devForce=e.target.value;refresh()};function refresh(){const id=nearestRegion(),p=PROFILES[id];inf.textContent=`${p.name}: Lit ${p.lit.toFixed(2)}s · Crack ${p.crack.toFixed(2)}s · Broken ${p.broken.toFixed(2)}s. ${p.note}`;if(info)info.textContent='Phase 5: mỗi vùng dùng nhịp và luật riêng. Stable Tile/Neon Core của Phase 4 vẫn là vùng an toàn chung.'}refresh();return true}
 const upd=update;update=function(dt){const r=upd.apply(this,arguments);updatePhase5(dt);return r};
@@ -19369,7 +19376,7 @@ const oldUpdate=update;update=function(dt){
   if(unlocked()&&!state().announced){state().announced=true;toast('Những rễ cây chắn lối phía Bắc đã rút xuống…');save()}
   if(home()&&P.dead&&wasNorth)resetForestBoss();
   if(beforeDead&&!P.dead&&wasNorth&&state().checkpoint){P.x=52;P.y=-42;Camera.reset(P.x,P.y);save()}
-  if(home()&&unlocked()&&P.x>=LEFT&&P.x<RIGHT&&P.y<0&&!blocked()&&!P.dead){const stage=P.y>-10?0:P.y>-24?1:P.y>-42?2:3;if(stage!==lastStage){lastStage=stage;if(stage>0)toast(['Rìa Rừng','Mê Cung Tán Lá','Vùng Rễ Sâu','Sào Huyệt Tử Đằng'][stage])}}
+  if(home()&&unlocked()&&P.x>=LEFT&&P.x<RIGHT&&P.y<0&&!blocked()&&!P.dead){const stage=P.y>-10?0:P.y>-24?1:P.y>-42?2:3;if(stage!==lastStage){lastStage=stage;if(stage>0)showAreaTitle(['Rìa Rừng','Mê Cung Tán Lá','Vùng Rễ Sâu','Sào Huyệt Tử Đằng'][stage],'')}}
   tick(dt);
  }
  paintBoss();return r;
@@ -19432,7 +19439,7 @@ const buildBase=build;build=function(){const r=buildBase.apply(this,arguments);t
 
 
 const collision=hit;hit=function(x,y){if(S.realm640==='city682')return !state().map||!inCity(x-.3,y-.3)||!inCity(x+.3,y+.3)||[[-.25,-.2],[.25,.2],[-.25,.2],[.25,-.2]].some(([dx,dy])=>grid[Math.floor(y+dy)]?.[Math.floor(x+dx)]===T.WALL);return collision.apply(this,arguments)};
-function travel(enter){if(enter&&!state().map)return false;if(P.dead||window.realmTransit644)return false;resetInput();S.realm640=enter?'city682':'home';P.x=enter?92.5:52;P.y=enter?55.5:-49;P.vx=P.vy=0;P.state='idle';near=null;Camera.reset(P.x,P.y);minimapWorldCache=null;minimapTerrainCache=null;hud();save();toast(enter?'Thành Phố Vụn Vỡ — Quảng trường Cửa Nam':'Trở về Sào Huyệt Tử Đằng');return true;}
+function travel(enter){if(enter&&!state().map)return false;if(P.dead||window.realmTransit644)return false;resetInput();S.realm640=enter?'city682':'home';P.x=enter?92.5:52;P.y=enter?55.5:-49;P.vx=P.vy=0;P.state='idle';near=null;Camera.reset(P.x,P.y);minimapWorldCache=null;minimapTerrainCache=null;hud();save();showAreaTitle(enter?'Thành Phố Vụn Vỡ':'Sào Huyệt Tử Đằng',enter?'Quảng trường Cửa Nam':'Rừng Tinh Mộc');return true;}
 const interactList=interactables;interactables=function(){if(S.realm640==='city682')return[{kind:'cityBack682',x:92.5,y:57,reach:1.8,label:'Cổng về Rừng Tinh Mộc',btn:'Trở về'},{kind:'cityStone682',x:92.5,y:42,reach:1.5,label:'Bia của thành phố',btn:'Đọc'}];const list=interactList.apply(this,arguments);if(S.realm640==='home'){const e=WORLD.npcs.find(n=>n.id==='elder');if(e&&state().fragment1&&state().fragment2&&!state().map)list.push({kind:'combine682',x:e.x+1,y:e.y+.6,reach:1.5,label:'Bàn ghép bản đồ cổ',btn:'Ghép'});if(state().map)list.push({kind:'cityGate682',x:52,y:-51.5,reach:1.8,label:'Cổng Thành Phố Vụn Vỡ',btn:'Bước qua'});for(const q of lessons){const n=WORLD.npcs.find(n=>n.id===q.npc);if(S.gateOpen&&n&&storyVisible(n)&&!state().quizzes[q.id])list.push({kind:'lesson682',ref:q,x:n.x+.85,y:n.y+.6,reach:1.2,label:'Ôn tập tự chọn: '+q.title,btn:'Ôn tập'});}}return list;};
 const interactBase=interact;interact=function(o){if(o?.kind==='combine682')return combine();if(o?.kind==='lesson682')return lesson(o.ref);if(o?.kind==='cityGate682')return travel(true);if(o?.kind==='cityBack682')return travel(false);if(o?.kind==='cityStone682')return say('Bia đá Cửa Nam',['Thành Phố Vụn Vỡ từng nối các miền rừng bằng những cánh cổng cổ. Hai mảnh bản đồ là lời chỉ đường của những người sống sót.','Bạn đã tìm thấy Quảng trường Cửa Nam. Cổng phía nam vẫn dẫn trở về khu rừng.']);return interactBase.apply(this,arguments)};
 const hint=interactionHint;interactionHint=function(o){return ['combine682','lesson682','cityGate682','cityBack682','cityStone682'].includes(o?.kind)?o.label:hint.apply(this,arguments)};
@@ -20712,41 +20719,41 @@ ensure();syncAmbient();version691();window.VILLAGE_PHASE8_691={phase:8,version:V
 const V='6.92.0',sys=window.BOSS_SYSTEM652;if(!sys){console.warn('[v6.92] BOSS_SYSTEM652 missing');return}
 const battle=sys.battle,HOME={x:94.4,y:17.2},ARENA={x:94.4,y:17.2,r:8.35};
 const oldSpecial=window.BOSS_SPECIAL653;try{oldSpecial?.reset?.()}catch(_){}
-const skill={kind:'',t:0,cd:1.8,hit:false,last:'',count:0,tx:0,ty:0,sx:0,sy:0,dirX:0,dirY:1};
+const skill={kind:'',t:0,cd:1.05,hit:false,last:'',count:0,tx:0,ty:0,sx:0,sy:0,dirX:0,dirY:1};
 const boss=()=>sys.boss?.();
 function announce(s,d=1.1){const e=document.getElementById('phaseNotice652');if(e){e.textContent=s;e.classList.add('on')}battle.notice=Math.max(battle.notice||0,d)}
 function clearSkill(){skill.kind='';skill.t=0;skill.hit=false}
 function face(a,x=P.x,y=P.y){const dx=x-a.x,dy=y-a.y,d=Math.hypot(dx,dy)||1;skill.dirX=dx/d;skill.dirY=dy/d;a.attackDirX6500=skill.dirX;a.attackDirY6500=skill.dirY;a.facing=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');return d}
-function hurtPlayer(n){if(P.dead)return false;return !!damagePlayer(Math.max(1,Math.round(n)))}
+function hurtPlayer(n){if(P.dead)return false;const landed=!!damagePlayer(Math.max(1,Math.round(n)));if(landed)Camera.nudge(.11);return landed}
 function safePoint(x,y){if(typeof hit!=='function'||!hit(x,y))return{x,y};if(typeof safePosition==='function')return safePosition(x,y,2,'ruins')||{x:HOME.x,y:HOME.y};return{x:HOME.x,y:HOME.y}}
 function startRootWave(a){face(a);skill.kind='rootwave';skill.t=0;skill.hit=false;skill.last='rootwave';skill.sx=a.x;skill.sy=a.y;a.state='attack';a.attackKind='walk_attack';a.animT=0;announce('Mộc Mạch Chấn');return true}
 function startJump(a){const p=safePoint(P.x,P.y);skill.kind='jump';skill.t=0;skill.hit=false;skill.last='jump';skill.sx=a.x;skill.sy=a.y;skill.tx=p.x;skill.ty=p.y;face(a,p.x,p.y);a.state='attack';a.attackKind='run_attack';a.animT=0;announce('Trụy Kích Mộc Vương');return true}
 function startRing(a){face(a);skill.kind='ring';skill.t=0;skill.hit=false;skill.last='ring';skill.sx=a.x;skill.sy=a.y;a.state='attack';a.attackKind='walk_attack';a.animT=0;announce('Mộc Hoàn Bạo Phát');return true}
 function choose(a){const phase=battle.phase||1,d=Math.hypot(P.x-a.x,P.y-a.y);skill.count++;
  if(phase===2&&skill.count%3===0)return startRing(a);
- if(d>2.0||skill.last!=='jump')return startJump(a);
+ if(d>2.5||skill.last!=='jump')return startJump(a);
  return startRootWave(a);
 }
-function chase(a,dt){const d=face(a);a.state=d>1.55?'chase':'idle';a.attackKind='attack';if(d>1.55){const sp=battle.phase===2?1.52:1.38,nx=a.x+skill.dirX*sp*dt,ny=a.y+skill.dirY*sp*dt;if(typeof hit!=='function'||!hit(nx,ny)){a.x=nx;a.y=ny}}return true}
+function chase(a,dt){const d=face(a);a.state=d>1.55?'chase':'idle';a.attackKind='attack';if(d>1.55){const sp=battle.phase===2?1.72:1.52,nx=a.x+skill.dirX*sp*dt,ny=a.y+skill.dirY*sp*dt;if(typeof hit!=='function'||!hit(nx,ny)){a.x=nx;a.y=ny}}return true}
 function pointLineDistance(px,py,x1,y1,dx,dy,len){const vx=px-x1,vy=py-y1,t=Math.max(0,Math.min(len,vx*dx+vy*dy)),qx=x1+dx*t,qy=y1+dy*t;return Math.hypot(px-qx,py-qy)}
 function tick(a,dt){if(!battle.active||P.dead||a.dead||a.dying){clearSkill();return false}if(battle.transition){clearSkill();a.state='idle';a.attackCd=999;return true}
- skill.cd=Math.max(0,skill.cd-dt);if(!skill.kind){if(skill.cd<=0){choose(a);skill.cd=battle.phase===2?2.75:3.25;return true}return chase(a,dt)}
+ skill.cd=Math.max(0,skill.cd-dt);if(!skill.kind){if(skill.cd<=0){choose(a);skill.cd=battle.phase===2?1.72:2.05;return true}return chase(a,dt)}
  skill.t+=dt;a.attackHitPending=false;a.attackLocked6500=false;
  if(skill.kind==='rootwave'){
   a.state='attack';a.attackKind='walk_attack';a.animT=skill.t*4.2;
-  if(!skill.hit&&skill.t>=.78){skill.hit=true;const d=pointLineDistance(P.x,P.y,skill.sx,skill.sy,skill.dirX,skill.dirY,4.6);if(d<=.83)hurtPlayer(battle.phase===2?22:18)}
-  if(skill.t>=1.28){clearSkill();a.state='idle'}return true;
+  if(!skill.hit&&skill.t>=.55){skill.hit=true;const d=pointLineDistance(P.x,P.y,skill.sx,skill.sy,skill.dirX,skill.dirY,5.1);if(d<=1.07)hurtPlayer(battle.phase===2?27:23)}
+  if(skill.t>=.98){clearSkill();a.state='idle'}return true;
  }
  if(skill.kind==='jump'){
   a.state='attack';a.attackKind='run_attack';a.animT=skill.t*4.8;
-  if(skill.t>=.76&&skill.t<.92){const p=(skill.t-.76)/.16;a.x=skill.sx+(skill.tx-skill.sx)*p;a.y=skill.sy+(skill.ty-skill.sy)*p}
-  if(!skill.hit&&skill.t>=.94){skill.hit=true;a.x=skill.tx;a.y=skill.ty;const d=Math.hypot(P.x-a.x,P.y-a.y);if(d<=1.02)hurtPlayer(26);else if(d<=1.70)hurtPlayer(13);try{if(typeof haptic==='function')haptic(26)}catch(_){}}
-  if(skill.t>=1.68){clearSkill();a.state='idle'}return true;
+  if(skill.t>=.52&&skill.t<.70){const p=(skill.t-.52)/.18;a.x=skill.sx+(skill.tx-skill.sx)*p;a.y=skill.sy+(skill.ty-skill.sy)*p}
+  if(!skill.hit&&skill.t>=.72){skill.hit=true;a.x=skill.tx;a.y=skill.ty;const d=Math.hypot(P.x-a.x,P.y-a.y);if(d<=1.35)hurtPlayer(32);else if(d<=2.08)hurtPlayer(18);try{if(typeof haptic==='function')haptic(26)}catch(_){}}
+  if(skill.t>=1.27){clearSkill();a.state='idle'}return true;
  }
  if(skill.kind==='ring'){
   a.state='attack';a.attackKind='walk_attack';a.animT=skill.t*4.0;
-  if(!skill.hit&&skill.t>=1.02){skill.hit=true;if(Math.hypot(P.x-a.x,P.y-a.y)<=2.4)hurtPlayer(19)}
-  if(skill.t>=1.56){clearSkill();a.state='idle'}return true;
+  if(!skill.hit&&skill.t>=.76){skill.hit=true;if(Math.hypot(P.x-a.x,P.y-a.y)<=3.0)hurtPlayer(battle.phase===2?27:23)}
+  if(skill.t>=1.12){clearSkill();a.state='idle'}return true;
  }
  clearSkill();return true;
 }
@@ -20770,23 +20777,23 @@ const draw692=drawWorld;drawWorld=function(t){const r=draw692.apply(this,argumen
  ctx.strokeStyle='rgba(111,224,178,.34)';ctx.lineWidth=Math.max(1.5,TS*.025);ctx.setLineDash([Math.max(4,TS*.11),Math.max(4,TS*.08)]);ctx.beginPath();EDGE_PILLARS.forEach((p,i)=>{const x=p.x*TS-cx,y=p.y*TS-cy;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();ctx.stroke();ctx.setLineDash([]);
  for(const p of EDGE_PILLARS){try{oldRootsDraw(p,cx,cy,t)}catch(_){}}
  if(a&&skill.kind==='rootwave'){
-   const p=Math.min(1,skill.t/.78),x=skill.sx*TS-cx,y=skill.sy*TS-cy,ex=(skill.sx+skill.dirX*4.6)*TS-cx,ey=(skill.sy+skill.dirY*4.6)*TS-cy;ctx.globalAlpha=.25+.45*p;ctx.strokeStyle=skill.t<.78?'#bff6a7':'#69d58e';ctx.lineWidth=Math.max(3,TS*(.08+.06*p));ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.stroke();for(let i=1;i<=4;i++){const k=i/4,bx=x+(ex-x)*k,by=y+(ey-y)*k;ctx.fillStyle='#c9f7a2';ctx.fillRect(bx-TS*.08,by-TS*.08,TS*.16,TS*.16)}
+   const p=Math.min(1,skill.t/.55),x=skill.sx*TS-cx,y=skill.sy*TS-cy,ex=(skill.sx+skill.dirX*5.1)*TS-cx,ey=(skill.sy+skill.dirY*5.1)*TS-cy;ctx.globalAlpha=.25+.45*p;ctx.strokeStyle=skill.t<.55?'#bff6a7':'#69d58e';ctx.lineWidth=Math.max(3,TS*(1.07*2));ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.stroke();for(let i=1;i<=4;i++){const k=i/4,bx=x+(ex-x)*k,by=y+(ey-y)*k;ctx.fillStyle='#c9f7a2';ctx.fillRect(bx-TS*.08,by-TS*.08,TS*.16,TS*.16)}
  }
  if(a&&skill.kind==='jump'){
-   const p=Math.min(1,skill.t/.94),x=skill.tx*TS-cx,y=skill.ty*TS-cy,rad=TS*(.42+.72*p);ctx.globalAlpha=.32+.42*p;ctx.fillStyle='rgba(231,113,85,.16)';ctx.strokeStyle='#f3c06f';ctx.lineWidth=Math.max(2,TS*.045);ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();ctx.stroke();if(skill.t>=.94&&skill.t<1.22){ctx.globalAlpha=.45*(1-(skill.t-.94)/.28);ctx.strokeStyle='#d9f3a0';ctx.beginPath();ctx.arc(x,y,TS*(.8+(skill.t-.94)*2.7),0,Math.PI*2);ctx.stroke()}
+   const p=Math.min(1,skill.t/.72),x=skill.tx*TS-cx,y=skill.ty*TS-cy,rad=TS*(.42+1.66*p);ctx.globalAlpha=.32+.42*p;ctx.fillStyle='rgba(231,113,85,.16)';ctx.strokeStyle='#f3c06f';ctx.lineWidth=Math.max(2,TS*.045);ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();ctx.stroke();if(skill.t>=.72&&skill.t<.98){ctx.globalAlpha=.45*(1-(skill.t-.72)/.26);ctx.strokeStyle='#d9f3a0';ctx.beginPath();ctx.arc(x,y,TS*(.8+(skill.t-.72)*2.7),0,Math.PI*2);ctx.stroke()}
  }
  if(a&&skill.kind==='ring'){
-   const p=Math.min(1,skill.t/1.02),x=a.x*TS-cx,y=a.y*TS-cy,rad=TS*(.55+1.7*p);ctx.globalAlpha=.25+.35*p;ctx.fillStyle='rgba(104,205,126,.10)';ctx.strokeStyle='#bce895';ctx.lineWidth=Math.max(2,TS*.04);ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();ctx.stroke();
+   const p=Math.min(1,skill.t/.76),x=a.x*TS-cx,y=a.y*TS-cy,rad=TS*(.55+2.45*p);ctx.globalAlpha=.25+.35*p;ctx.fillStyle='rgba(104,205,126,.10)';ctx.strokeStyle='#bce895';ctx.lineWidth=Math.max(2,TS*.04);ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();ctx.stroke();
  }
  ctx.restore();const label=document.querySelector('#bossHud652 .bossSkill653');if(label&&battle.active)label.textContent=skill.kind==='rootwave'?'Chiêu: Mộc Mạch Chấn':skill.kind==='jump'?'Chiêu: Trụy Kích Mộc Vương':skill.kind==='ring'?'Chiêu: Mộc Hoàn Bạo Phát':'Giai đoạn '+battle.phase+' · Đang quan sát mục tiêu';return r};
 
 /* Airborne presentation for jump: hide the ground sprite and draw it raised along a simple arc. */
-const drawOrc692=v325DrawOrc;v325DrawOrc=function(a,cx,cy){if(a?.boss652&&skill.kind==='jump'&&battle.active){const im=window.ENEMY_IMAGES659?.orc3?.run_attack||window.ENEMY_IMAGES659?.orc3?.idle;if(!im?.naturalWidth)return true;const frames=Math.max(1,Math.floor(im.naturalWidth/64)),frame=Math.floor(skill.t*7)%frames,row=typeof v325OrcDirectionRow==='function'?v325OrcDirectionRow(a):0,size=TS*3.2;let px=a.x,py=a.y,lift=0;if(skill.t<.76){const p=Math.min(1,skill.t/.76);px=skill.sx;py=skill.sy;lift=Math.sin(p*Math.PI*.72)*TS*1.25}else if(skill.t<.94){const p=(skill.t-.76)/.18;px=skill.sx+(skill.tx-skill.sx)*p;py=skill.sy+(skill.ty-skill.sy)*p;lift=Math.sin((.72+.28*p)*Math.PI)*TS*1.25}ctx.save();ctx.imageSmoothingEnabled=false;ctx.globalAlpha=.22;ctx.fillStyle='#183329';ctx.beginPath();ctx.ellipse(px*TS-cx,py*TS-cy,TS*.48,TS*.18,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.drawImage(im,frame*64,row*64,64,64,Math.round(px*TS-cx-size/2),Math.round(py*TS-cy-size*47/64-lift),Math.round(size),Math.round(size));ctx.restore();return true}return drawOrc692.apply(this,arguments)};
+const drawOrc692=v325DrawOrc;v325DrawOrc=function(a,cx,cy){if(a?.boss652&&skill.kind==='jump'&&battle.active){const im=window.ENEMY_IMAGES659?.orc3?.run_attack||window.ENEMY_IMAGES659?.orc3?.idle;if(!im?.naturalWidth)return true;const frames=Math.max(1,Math.floor(im.naturalWidth/64)),frame=Math.floor(skill.t*7)%frames,row=typeof v325OrcDirectionRow==='function'?v325OrcDirectionRow(a):0,size=TS*3.2;let px=a.x,py=a.y,lift=0;if(skill.t<.52){const p=Math.min(1,skill.t/.52);px=skill.sx;py=skill.sy;lift=Math.sin(p*Math.PI*.72)*TS*1.25}else if(skill.t<.72){const p=(skill.t-.52)/.20;px=skill.sx+(skill.tx-skill.sx)*p;py=skill.sy+(skill.ty-skill.sy)*p;lift=Math.sin((.72+.28*p)*Math.PI)*TS*1.25}ctx.save();ctx.imageSmoothingEnabled=false;ctx.globalAlpha=.22;ctx.fillStyle='#183329';ctx.beginPath();ctx.ellipse(px*TS-cx,py*TS-cy,TS*.48,TS*.18,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.drawImage(im,frame*64,row*64,64,64,Math.round(px*TS-cx-size/2),Math.round(py*TS-cy-size*47/64-lift),Math.round(size),Math.round(size));ctx.restore();return true}return drawOrc692.apply(this,arguments)};
 
 /* Phase-2 transition no longer waits for guards to die. Also rebalance boss and guards and keep outsider mobs out. */
 let transitionAnnounced=false,phase2Started=false;
 function removePhase1Adds(){for(let i=ANIMALS.length-1;i>=0;i--){const u=ANIMALS[i];if(u?.summon652&&u.skin652!=='orc2')ANIMALS.splice(i,1)}}
-function tuneActors(){const a=boss();if(a){a.damage652=10;a.meleeCd652=3.0;a.speed652=battle.phase===2?1.62:1.45}
+function tuneActors(){const a=boss();if(a){a.damage652=12;a.meleeCd652=1.92;a.speed652=battle.phase===2?1.77:1.55}
  for(const u of ANIMALS){if(u?.summon652&&u.skin652==='orc2'){u.guard692=true;u.maxHp=45;u.hp=Math.min(Number(u.hp)||45,45);u.damage652=8;u.meleeCd652=2.75;u.speed652=1.85;u.aggroT=Math.max(15,u.aggroT||0)}}}
 function forcePhase2IfReady(){if(!battle.transition)return;removePhase1Adds();const note=document.getElementById('phaseNotice652');if(!transitionAnnounced){transitionAnnounced=true;announce('Phong Ấn Đài Nước thức tỉnh · Vệ Thân đang tới',1.5)}else if(note&&/hạ chúng|Lính Vệ Đền/i.test(note.textContent||'')){note.textContent='Vệ Thân vào trận · Mộc Bá Vương sẽ chiến đấu cùng chúng';battle.notice=Math.max(battle.notice||0,1.2)}
  const sub=document.querySelector('#bossHud652 small');if(sub)sub.textContent='Chuyển giai đoạn · Vệ Thân đang vào vị trí';
@@ -20813,10 +20820,10 @@ const V='6.93.0';
 function addFx(){}
 /* ================= MINI-BOSS: replace frantic slash-looking root wave ================= */
 const bossSys=window.BOSS_SYSTEM652,bstate=window.BOSS_REWORK692?.skill;if(bossSys&&bstate){const battle=bossSys.battle,boss=()=>bossSys.boss?.();
- const oldTick=window.BOSS_SPECIAL653?.tick;function rootSpikes(a,dt){const s=bstate;s.t+=dt;a.state='idle';a.attackHitPending=false;a.attackLocked6500=false;if(!s.points){const d={x:s.dirX,y:s.dirY};s.points=[1.25,2.25,3.25].map((n,i)=>({x:s.sx+d.x*n,y:s.sy+d.y*n,t:.42+i*.18,hit:false}))}for(const p of s.points){if(!p.hit&&s.t>=p.t){p.hit=true;addFx('bossSpike',p.x,p.y,.42);if(Math.hypot(P.x-p.x,P.y-p.y)<=.94)damagePlayer(battle.phase===2?19:16)}}if(s.t>=1.22){s.kind='';s.points=null;a.state='idle'}return true}
- window.BOSS_SPECIAL653={...window.BOSS_SPECIAL653,tick:function(a,dt){if(bstate.kind==='rootwave'){bstate.kind='rootspikes';bstate.points=null;bstate.t=0}if(bstate.kind==='rootspikes')return rootSpikes(a,dt);return oldTick?oldTick(a,dt):false},reset:function(){try{window.BOSS_REWORK692?.skill&&(window.BOSS_REWORK692.skill.points=null)}catch(_){}window.BOSS_REWORK692.skill.kind='';window.BOSS_REWORK692.skill.t=0;window.BOSS_REWORK692.skill.cd=1.8;window.BOSS_REWORK692.skill.last='';window.BOSS_REWORK692.skill.count=0},state:bstate};
+ const oldTick=window.BOSS_SPECIAL653?.tick;function rootSpikes(a,dt){const s=bstate;s.t+=dt;a.state='idle';a.attackHitPending=false;a.attackLocked6500=false;if(!s.points){const d={x:s.dirX,y:s.dirY};s.points=[1.35,2.45,3.65].map((n,i)=>({x:s.sx+d.x*n,y:s.sy+d.y*n,t:.28+i*.13,hit:false}))}for(const p of s.points){if(!p.hit&&s.t>=p.t){p.hit=true;addFx('bossSpike',p.x,p.y,.42);if(Math.hypot(P.x-p.x,P.y-p.y)<=1.21)(damagePlayer(battle.phase===2?26:22)&&Camera.nudge(.09))}}if(s.t>=.91){s.kind='';s.points=null;a.state='idle'}return true}
+ window.BOSS_SPECIAL653={...window.BOSS_SPECIAL653,tick:function(a,dt){if(bstate.kind==='rootwave'){bstate.kind='rootspikes';bstate.points=null;bstate.t=0}if(bstate.kind==='rootspikes')return rootSpikes(a,dt);return oldTick?oldTick(a,dt):false},reset:function(){try{window.BOSS_REWORK692?.skill&&(window.BOSS_REWORK692.skill.points=null)}catch(_){}window.BOSS_REWORK692.skill.kind='';window.BOSS_REWORK692.skill.t=0;window.BOSS_REWORK692.skill.cd=1.05;window.BOSS_REWORK692.skill.last='';window.BOSS_REWORK692.skill.count=0},state:bstate};
  const bossDrawPrev=v325DrawOrc;v325DrawOrc=function(a,cx,cy){if(a?.boss652&&bstate.kind==='rootspikes'&&battle.active){const im=window.ENEMY_IMAGES659?.orc3?.idle;if(im?.naturalWidth){const frames=Math.max(1,Math.floor(im.naturalWidth/64)),frame=Math.floor(bstate.t*4)%frames,row=typeof v325OrcDirectionRow==='function'?v325OrcDirectionRow(a):0,size=TS*3.2;ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(im,frame*64,row*64,64,64,Math.round(a.x*TS-cx-size/2),Math.round(a.y*TS-cy-size*47/64),Math.round(size),Math.round(size));ctx.restore();return true}}return bossDrawPrev.apply(this,arguments)};
- const dwPrev=drawWorld;drawWorld=function(t){const r=dwPrev.apply(this,arguments);if(S?.realm640==='roots'&&battle.active&&bstate.kind==='rootspikes'){const[cx,cy]=cam();ctx.save();for(const p of bstate.points||[]){const left=Math.max(0,p.t-bstate.t),pulse=Math.max(0,1-left/.42),x=p.x*TS-cx,y=p.y*TS-cy;ctx.strokeStyle=p.hit?'#d7f0a3':'#e2bd72';ctx.fillStyle='rgba(121,196,111,'+(.08+.14*pulse)+')';ctx.lineWidth=Math.max(2,TS*.035);ctx.beginPath();ctx.arc(x,y,TS*.55,0,Math.PI*2);ctx.fill();ctx.stroke();if(p.hit){ctx.fillStyle='#8fbc70';for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(x+i*TS*.18,y+TS*.18);ctx.lineTo(x+i*TS*.1,y-TS*.35);ctx.lineTo(x+i*TS*.28,y+TS*.05);ctx.fill()}}}ctx.restore();const lab=document.querySelector('#bossHud652 .bossSkill653');if(lab)lab.textContent='Chiêu: Mộc Nha Trồi'}return r};
+ const dwPrev=drawWorld;drawWorld=function(t){const r=dwPrev.apply(this,arguments);if(S?.realm640==='roots'&&battle.active&&bstate.kind==='rootspikes'){const[cx,cy]=cam();ctx.save();for(const p of bstate.points||[]){const left=Math.max(0,p.t-bstate.t),pulse=Math.max(0,1-left/.28),x=p.x*TS-cx,y=p.y*TS-cy;ctx.strokeStyle=p.hit?'#d7f0a3':'#e2bd72';ctx.fillStyle='rgba(121,196,111,'+(.08+.14*pulse)+')';ctx.lineWidth=Math.max(2,TS*.035);ctx.beginPath();ctx.arc(x,y,TS*1.21,0,Math.PI*2);ctx.fill();ctx.stroke();if(p.hit){ctx.fillStyle='#8fbc70';for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(x+i*TS*.18,y+TS*.18);ctx.lineTo(x+i*TS*.1,y-TS*.35);ctx.lineTo(x+i*TS*.28,y+TS*.05);ctx.fill()}}}ctx.restore();const lab=document.querySelector('#bossHud652 .bossSkill653');if(lab)lab.textContent='Chiêu: Mộc Nha Trồi'}return r};
 }
 /* ================= SPIRIT VILLAGE READABILITY CLEANUP ================= */
 function cleanSpirit(){try{if(typeof grid==='undefined'||typeof T==='undefined')return;const R=window.SPIRIT_RECT637||{x0:3,x1:23,y0:34,y1:52};const clear=[];for(let x=5;x<=22;x++)for(let dy=-1;dy<=1;dy++)clear.push([x,43+dy]);for(let y=35;y<=51;y++)for(let dx=-1;dx<=1;dx++)clear.push([13+dx,y]);for(let x=7;x<=19;x++){clear.push([x,38],[x,39],[x,40],[x,46],[x,47],[x,48])}for(const [x,y] of clear)if(grid[y]?.[x]!=null)grid[y][x]=(x>=12&&x<=14||y>=42&&y<=44)?T.PATH:T.GRASS;
@@ -22060,5 +22067,70 @@ const updateBase=update;update=function(dt){const b=window.BOSS_SYSTEM652?.battl
 function version(){try{CFG.version='6.101.0';if(typeof HTCT!=='undefined')HTCT.version='6.101.0';document.title='Hành Trình Cổ Thư — v6.101.0';document.querySelectorAll('.ver').forEach(e=>e.textContent='v6.101.0')}catch(e){}}
 version();requestAnimationFrame(version);window.HTCT101={altarCoordinates,tree};
 })();</script>
+
+<style id="v6102-clean-style">
+/* Only E interaction and area/realm banners survive as automatic floating text.
+   Story dialogue, story cutscenes, menus, quiz and confirmation are deliberate gameplay panels, not toasts. */
+html body #toast, html body #v670StoryToast, html body #v670StoryToast.on,
+html body #storyTip, html body #storyTip.on, html body #storyTip.interactionTip.on,
+html body #achPop, html body #phaseNotice652, html body #phaseNotice652.on,
+html body #buffHud970, html body #fullscreenHint, html body #fullscreenHint6500,
+html body #contextTutorialHint, html body #contextTutorialHint.on,
+html body #tutorialHandSprite, html body #tutorialTapRing, html body #questToast,
+#tutorialToast, #petNotice, .questToast, .achievementToast, .floatingDamage,
+#bossHud652 .bossSkill653, #bossHud652 small,
+#dayBanner, .dayBanner, #v670StoryToast.on {
+ display:none!important;visibility:hidden!important;opacity:0!important;
+ pointer-events:none!important;animation:none!important;
+}
+#hint,#areaTitle{pointer-events:none!important}
+#cameraZoomRow102 select{max-width:190px!important;min-width:150px!important;text-align:center!important}
+#fullscreenSettings102,#fullscreenMenu102{min-height:38px!important}
+#settings #fullscreenSettingRow102{margin-top:6px!important}
+@media (prefers-reduced-motion: reduce){#areaTitle.show{transition:none!important}}
+</style>
+<script id="v6102-polish-script">(()=>{'use strict';
+const V='6.102.0',get=id=>document.getElementById(id);
+// Change WORLD tile rendering scale, never the on-screen HUD CSS dimensions.
+const zoomControl=get('cameraZoom102');
+function updateZoomLabel(){if(zoomControl)zoomControl.value=String(cameraZoom102)}
+function setZoom(v){v=Number(v);if(![1,1.1,1.2].includes(v))v=1.1;
+ if(v===cameraZoom102)return;
+ cameraZoom102=v;
+ try{localStorage.setItem(CAMERA_ZOOM_KEY102,String(v))}catch(_){}
+ // Recompute tile scale and immediately recentre in the new pixel coordinate system.
+ syncVisibleViewport();if(typeof Camera?.reset==='function')Camera.reset(P.x,P.y);
+ if(typeof minimapWorldCache!=='undefined')minimapWorldCache=null;
+ if(typeof minimapTerrainCache!=='undefined')minimapTerrainCache=null;
+ updateZoomLabel();
+}
+if(zoomControl){updateZoomLabel();zoomControl.addEventListener('change',()=>setZoom(zoomControl.value))}
+async function toggleFullscreen(){
+ const active=!!(document.fullscreenElement||document.webkitFullscreenElement);
+ try{if(active){const f=document.exitFullscreen||document.webkitExitFullscreen; if(f)await f.call(document)}
+ else{const f=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;if(f)await f.call(document.documentElement);
+ else{get('fullscreenSettings102').textContent='Không hỗ trợ trên trình duyệt này'}}}
+ catch(e){get('fullscreenSettings102').textContent='Không thể bật trên trình duyệt này'}
+ refreshFullscreen();
+}
+function refreshFullscreen(){const yes=!!(document.fullscreenElement||document.webkitFullscreenElement);
+ for(const id of ['fullscreenSettings102','fullscreenMenu102']){const btn=get(id);if(!btn)continue;
+  const unsupported=!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);
+  btn.textContent=unsupported?'Trình duyệt không hỗ trợ':yes?'Thoát toàn màn hình':'Toàn màn hình';
+  btn.disabled=!!unsupported;
+ }}
+for(const id of ['fullscreenSettings102','fullscreenMenu102'])get(id)?.addEventListener('click',toggleFullscreen);
+document.addEventListener('fullscreenchange',refreshFullscreen);
+document.addEventListener('webkitfullscreenchange',refreshFullscreen);
+refreshFullscreen();
+// Hide already-queued text without affecting NPC conversations or map-entry banners.
+for(const id of ['toast','v670StoryToast','storyTip','phaseNotice652','achPop','buffHud970','contextTutorialHint','tutorialHandSprite','tutorialTapRing']){const el=get(id);if(!el)continue;el.classList.remove('on');el.style.setProperty('display','none','important');el.style.setProperty('pointer-events','none','important');}
+// Legacy phase notices are retained internally for timing; their DOM representation is hidden.
+function version(){try{CFG.version=V;if(typeof HTCT!=='undefined')HTCT.version=V;if(S?.v320)S.v320.patchVersion=V}catch(_){}
+ document.title='Hành Trình Cổ Thư — v'+V;document.querySelectorAll('.ver').forEach(el=>el.textContent='v'+V)}
+version();requestAnimationFrame(version);
+window.HTCT102={setZoom,get zoom(){return cameraZoom102},refreshFullscreen};
+})();</script>
+
 </body>
 </html>
